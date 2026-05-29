@@ -215,12 +215,12 @@ class ReflectionScreen extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.only(top: 5.0),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
                           child: Container(
                             width: 6,
                             height: 6,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: Color(0xFFFBB540),
                               shape: BoxShape.circle,
                             ),

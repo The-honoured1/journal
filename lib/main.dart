@@ -101,7 +101,7 @@ class _DeviceShowcaseFrameState extends State<DeviceShowcaseFrame> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, py: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFB534).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(20),
