@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/audio_waveform.dart';
@@ -335,8 +336,8 @@ class ReflectionScreen extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Editing reflection..."),
+                      SnackBar(
+                        content: const Text("Editing reflection..."),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -367,8 +368,8 @@ class ReflectionScreen extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Preparing share layout..."),
+                      SnackBar(
+                        content: const Text("Preparing share layout..."),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );

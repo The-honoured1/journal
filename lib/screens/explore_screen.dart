@@ -135,7 +135,9 @@ class ExploreScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildExploreItem({
