@@ -1,27 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/journal_entry.dart';
 import '../widgets/sun_illustration.dart';
 import '../widgets/cozy_moon_illustration.dart';
-
-// Helper to get serif font style
-TextStyle getSerifStyle({double? fontSize, FontWeight? fontWeight, Color? color}) {
-  return TextStyle(
-    fontFamily: 'serif',
-    fontSize: fontSize,
-    fontWeight: fontWeight,
-    color: color,
-  );
-}
 
 class DashboardScreen extends StatefulWidget {
   final bool isDark;
   final Color primaryText;
   final Color secondaryText;
   final Color cardBg;
-  final int selectedDayIndex;
-  final ValueChanged<int> onDaySelect;
-  final VoidCallback onOpenJournal;
-  final List<Map<String, dynamic>> journalEntries;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onDateSelect;
+  final Function(JournalEntry) onOpenJournal;
+  final List<JournalEntry> journalEntries;
 
   const DashboardScreen({
     super.key,
@@ -29,8 +21,8 @@ class DashboardScreen extends StatefulWidget {
     required this.primaryText,
     required this.secondaryText,
     required this.cardBg,
-    required this.selectedDayIndex,
-    required this.onDaySelect,
+    required this.selectedDate,
+    required this.onDateSelect,
     required this.onOpenJournal,
     required this.journalEntries,
   });
@@ -40,29 +32,101 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final PageController _pageController = PageController(viewportFraction: 0.80);
-
-  final List<Map<String, String>> calendarDays = [
-    {"day": "Mon", "num": "7"},
-    {"day": "Tue", "num": "8"},
-    {"day": "Wed", "num": "9"},
-    {"day": "Thu", "num": "10"},
-    {"day": "Fri", "num": "11"},
-    {"day": "Sat", "num": "12"},
-    {"day": "Sun", "num": "13"},
-  ];
+  late DateTime _focusedMonth;
+  bool _isMonthView = true;
 
   @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _focusedMonth = DateTime(widget.selectedDate.year, widget.selectedDate.month);
+  }
+
+  // Parses entries' dates (e.g. "March 22, 2025") into DateTime
+  DateTime? _parseEntryDate(String dateStr) {
+    try {
+      final parts = dateStr.replaceAll(',', '').split(' ');
+      if (parts.length != 3) return null;
+      final monthStr = parts[0].toLowerCase();
+      final day = int.tryParse(parts[1]);
+      final year = int.tryParse(parts[2]);
+      if (day == null || year == null) return null;
+
+      final months = [
+        'january', 'february', 'march', 'april', 'may', 'june',
+        'july', 'august', 'september', 'october', 'november', 'december'
+      ];
+      final month = months.indexOf(monthStr) + 1;
+      if (month == 0) return null;
+
+      return DateTime(year, month, day);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _formatDateString(DateTime dt) {
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}";
+  }
+
+  List<DateTime?> _getDaysInMonth(DateTime month) {
+    final firstDay = DateTime(month.year, month.month, 1);
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+    final startOffset = firstDay.weekday - 1; // Mon = 0, Sun = 6
+
+    final List<DateTime?> cells = [];
+    for (int i = 0; i < startOffset; i++) {
+      cells.add(null);
+    }
+    for (int i = 1; i <= daysInMonth; i++) {
+      cells.add(DateTime(month.year, month.month, i));
+    }
+    return cells;
+  }
+
+  // Get a flashback entry if there is a past memory (exactly 7 days ago, 30 days ago, or just oldest)
+  JournalEntry? _getFlashbackEntry() {
+    if (widget.journalEntries.isEmpty) return null;
+    final now = DateTime.now();
+    
+    // Look for entries in the past
+    final pastEntries = widget.journalEntries.where((e) {
+      final dt = _parseEntryDate(e.date);
+      return dt != null && dt.isBefore(DateTime(now.year, now.month, now.day));
+    }).toList();
+
+    if (pastEntries.isEmpty) return null;
+    
+    // Find if any entry matches exactly 7 or 30 days ago
+    for (final entry in pastEntries) {
+      final dt = _parseEntryDate(entry.date)!;
+      final diff = DateTime(now.year, now.month, now.day).difference(dt).inDays;
+      if (diff == 7 || diff == 30 || diff == 365) {
+        return entry;
+      }
+    }
+    
+    // Otherwise fallback to the oldest entry to showcase memory lane
+    pastEntries.sort((a, b) {
+      final da = _parseEntryDate(a.date) ?? DateTime.now();
+      final db = _parseEntryDate(b.date) ?? DateTime.now();
+      return da.compareTo(db);
+    });
+    
+    return pastEntries.first;
   }
 
   @override
   Widget build(BuildContext context) {
-    // Use theme colors for background based on dark mode
     final backgroundColor = widget.isDark ? const Color(0xFF1E1A1A) : Colors.white;
-    final textColor = widget.isDark ? Colors.white70 : Colors.black87;
+    final accentColor = const Color(0xFFFFB534);
+
+    final selectedDateStr = _formatDateString(widget.selectedDate);
+    final dailyEntries = widget.journalEntries.where((e) => e.date == selectedDateStr).toList();
+    final flashback = _getFlashbackEntry();
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -70,23 +134,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: backgroundColor,
         elevation: 0,
         title: Text(
-          'Dashboard',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+          'Journal',
+          style: GoogleFonts.outfit(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
             color: widget.primaryText,
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(widget.isDark ? Icons.wb_sunny : Icons.nightlight_round),
-            color: widget.primaryText,
-            onPressed: () {
-              // Toggle theme callback could be added later
-            },
-          ),
-        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -96,20 +151,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 12),
-              // Horizontal calendar row
-              _buildCalendarRow(),
+              
+              // Custom interactive Month Calendar view
+              _buildCalendarCard(accentColor),
+              
               const SizedBox(height: 24),
-              // My Journal Section Header
-              _buildSectionHeader('My Journal'),
+              
+              // Flashback (Google Photos Style) Memory lane card
+              if (flashback != null) ...[
+                _buildSectionHeader("Memory Lane ✨"),
+                const SizedBox(height: 12),
+                _buildFlashbackCard(flashback),
+                const SizedBox(height: 24),
+              ],
+              
+              // Daily reflections header
+              _buildSectionHeader("Reflections on $selectedDateStr"),
               const SizedBox(height: 12),
-              // Swiping Horizontal Journal Cards
-              _buildJournalCards(),
-              const SizedBox(height: 24),
-              // Quick Journal section
-              _buildSectionHeader('Quick Journal'),
-              const SizedBox(height: 12),
-              _buildQuickJournalCards(),
-              const SizedBox(height: 24),
+              
+              // Reflections list
+              if (dailyEntries.isEmpty)
+                _buildEmptyState()
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: dailyEntries.length,
+                  itemBuilder: (context, idx) {
+                    return _buildEntryCard(dailyEntries[idx], accentColor);
+                  },
+                ),
+              const SizedBox(height: 30),
             ],
           ),
         ),
@@ -117,318 +189,427 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // Calendar row builder for cleaner structure
-  Widget _buildCalendarRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(calendarDays.length, (index) {
-        final isSelected = widget.selectedDayIndex == index;
-        final dayName = calendarDays[index]["day"]!;
-        final dayNum = calendarDays[index]["num"]!;
-        return GestureDetector(
-          onTap: () => widget.onDaySelect(index),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 44,
-            height: 80,
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFFFBB540)
-                  : (widget.isDark ? const Color(0xFF282522) : Colors.white),
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFFFBB540).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      )
-                    ]
-                  : [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      )
-                    ],
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  dayName,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected
-                        ? const Color(0xFF2C2A29)
-                        : (widget.isDark ? const Color(0xFF9E9992) : const Color(0xFF7C7975)),
-                  ),
-                ),
-                Text(
-                  dayNum,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected
-                        ? const Color(0xFF2C2A29)
-                        : (widget.isDark ? Colors.white : const Color(0xFF2C2A29)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
-  // Section header builder to keep consistency
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: widget.primaryText,
-            ),
-          ),
-          TextButton(
-            onPressed: () {},
-            child: const Text(
-              'See all',
-              style: TextStyle(
-                color: Color(0xFF7C7975),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Text(
+        title,
+        style: GoogleFonts.outfit(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: widget.primaryText,
+        ),
       ),
     );
   }
 
-  // Horizontal journal cards with refined styling
-  Widget _buildJournalCards() {
-    return SizedBox(
-      height: 220,
-      child: PageView(
-        controller: _pageController,
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        children: [
-          // Morning Card
-          GestureDetector(
-            onTap: widget.onOpenJournal,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 14.0),
-              child: _styledJournalCard(
-                backgroundColor: const Color(0xFFFCECD0),
-                illustration: const SunIllustration(),
-                title: "Let’s start your day",
-                description: "Begin with a mindful morning\nreflections.",
-                titleStyle: const TextStyle(
-                  fontFamily: 'serif',
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C2A29),
-                ),
-                descStyle: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF63564A),
-                  height: 1.4,
-                ),
-              ),
-            ),
-          ),
-          // Evening Card
-          Padding(
-            padding: const EdgeInsets.only(right: 14.0),
-            child: _styledJournalCard(
-              backgroundColor: widget.isDark ? const Color(0xFF2E2A26) : const Color(0xFFD6CEBF),
-              illustration: const CozyMoonIllustration(),
-              verticalLabel: 'Evening',
-              title: "Evening Reflection",
-              description: "Celebrate small joys and release\nthe tensions of today.",
-              titleStyle: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              descStyle: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFFECE7FF),
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper to build a styled journal card, optional vertical label for evening card
-  Widget _styledJournalCard({
-    required Color backgroundColor,
-    required Widget illustration,
-    String? verticalLabel,
-    required String title,
-    required String description,
-    required TextStyle titleStyle,
-    required TextStyle descStyle,
-  }) {
+  Widget _buildEmptyState() {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: widget.cardBg,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          Icon(CupertinoIcons.square_pencil, size: 40, color: widget.secondaryText.withOpacity(0.5)),
+          const SizedBox(height: 12),
+          Text(
+            "No reflections recorded for this day.",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(
+              color: widget.secondaryText,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Tap + below to start writing your diary.",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(
+              color: widget.secondaryText.withOpacity(0.7),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCalendarCard(Color accentColor) {
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    final cells = _getDaysInMonth(_focusedMonth);
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: widget.cardBg,
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: Stack(
-          children: [
-            Positioned.fill(child: illustration),
-            if (verticalLabel != null)
-              Positioned(
-                left: 12,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: RotatedBox(
-                    quarterTurns: 3,
-                    child: Text(
-                      verticalLabel,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: widget.isDark ? Colors.white60 : const Color(0xFF4C473E),
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ),
+      child: Column(
+        children: [
+          // Month navigation header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: Icon(Icons.chevron_left, color: widget.primaryText),
+                onPressed: () {
+                  setState(() {
+                    _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1);
+                  });
+                },
+              ),
+              Text(
+                "${months[_focusedMonth.month - 1]} ${_focusedMonth.year}",
+                style: GoogleFonts.outfit(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: widget.primaryText,
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(title, style: titleStyle),
-                  const SizedBox(height: 6),
-                  Text(description, style: descStyle),
-                ],
+              IconButton(
+                icon: Icon(Icons.chevron_right, color: widget.primaryText),
+                onPressed: () {
+                  setState(() {
+                    _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1);
+                  });
+                },
               ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          
+          // Days of Week labels
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day) {
+              return SizedBox(
+                width: 32,
+                child: Text(
+                  day,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: widget.secondaryText,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 8),
+          
+          // Days Grid
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: cells.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+            ),
+            itemBuilder: (context, idx) {
+              final cellDate = cells[idx];
+              if (cellDate == null) {
+                return const SizedBox.shrink();
+              }
+              
+              final isSelected = widget.selectedDate.year == cellDate.year &&
+                  widget.selectedDate.month == cellDate.month &&
+                  widget.selectedDate.day == cellDate.day;
+                  
+              final cellDateStr = _formatDateString(cellDate);
+              final hasEntries = widget.journalEntries.any((e) => e.date == cellDateStr);
+
+              return GestureDetector(
+                onTap: () => widget.onDateSelect(cellDate),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? accentColor
+                        : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Center(
+                        child: Text(
+                          cellDate.day.toString(),
+                          style: GoogleFonts.outfit(
+                            fontSize: 14,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            color: isSelected
+                                ? const Color(0xFF2C2A29)
+                                : widget.primaryText,
+                          ),
+                        ),
+                      ),
+                      if (hasEntries)
+                        Positioned(
+                          bottom: 4,
+                          child: Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xFF2C2A29) : accentColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlashbackCard(JournalEntry entry) {
+    final entryDate = _parseEntryDate(entry.date);
+    String flashbackTitle = "On this day in the past...";
+    if (entryDate != null) {
+      final diff = DateTime.now().difference(entryDate).inDays;
+      if (diff >= 365) {
+        final yrs = (diff / 365).floor();
+        flashbackTitle = yrs == 1 ? "1 Year Ago today... 🍃" : "$yrs Years Ago today... 🍃";
+      } else if (diff >= 30) {
+        final mths = (diff / 30).floor();
+        flashbackTitle = mths == 1 ? "1 Month Ago... ✨" : "$mths Months Ago... ✨";
+      } else if (diff >= 7) {
+        final wks = (diff / 7).floor();
+        flashbackTitle = wks == 1 ? "1 Week Ago... 🌿" : "$wks Weeks Ago... 🌿";
+      }
+    }
+
+    final hasImage = entry.imageUrls.isNotEmpty;
+    final bgImg = hasImage ? entry.imageUrls.first : "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=500&auto=format&fit=crop&q=80";
+
+    return GestureDetector(
+      onTap: () => widget.onOpenJournal(entry),
+      child: Container(
+        height: 200,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          image: DecorationImage(
+            image: NetworkImage(bgImg),
+            fit: BoxFit.cover,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
             ),
           ],
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient: LinearGradient(
+              colors: [
+                Colors.black.withOpacity(0.85),
+                Colors.black.withOpacity(0.4),
+                Colors.transparent,
+              ],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+            ),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                flashbackTitle,
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFFFB534),
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                entry.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                entry.text,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  color: Colors.white.withOpacity(0.8),
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // Quick Journal cards list
-  Widget _buildQuickJournalCards() {
-    return SizedBox(
-      height: 155,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        children: [
-          _buildQuickJournalCard(
-            title: "Pause & reflect 🌿",
-            desc: "What are you grateful for today?",
-            cardColor: widget.isDark ? const Color(0xFF422C2A) : const Color(0xFFFFECE8),
-            tagText1: "Today",
-            tagText2: "Personal",
-            tagBg1: widget.isDark ? Colors.black26 : Colors.white60,
-            tagBg2: widget.isDark ? const Color(0xFF78473B).withOpacity(0.3) : const Color(0xFFFFD4CD),
-            tagColor1: widget.primaryText.withOpacity(0.8),
-            tagColor2: const Color(0xFF78473B),
-          ),
-          const SizedBox(width: 14),
-          _buildQuickJournalCard(
-            title: "Set Intentions 😐",
-            desc: "How do you want to feel?",
-            cardColor: widget.isDark ? const Color(0xFF2C2A44) : const Color(0xFFE8E5FF),
-            tagText1: "Today",
-            tagText2: "Family",
-            tagBg1: widget.isDark ? Colors.black26 : Colors.white60,
-            tagBg2: widget.isDark ? const Color(0xFF4C458A).withOpacity(0.3) : const Color(0xFFD4CFFF),
-            tagColor1: widget.primaryText.withOpacity(0.8),
-            tagColor2: const Color(0xFF4C458A),
-          ),
-          const SizedBox(width: 14),
-          _buildQuickJournalCard(
-            title: "Gratitude Check ✨",
-            desc: "Name three things that bring peace.",
-            cardColor: widget.isDark ? const Color(0xFF253320) : const Color(0xFFE2F0D9),
-            tagText1: "Daily",
-            tagText2: "Mindful",
-            tagBg1: widget.isDark ? Colors.black26 : Colors.white60,
-            tagBg2: widget.isDark ? const Color(0xFF3B5D34).withOpacity(0.3) : const Color(0xFFC7E5BB),
-            tagColor1: widget.primaryText.withOpacity(0.8),
-            tagColor2: const Color(0xFF3B5D34),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildEntryCard(JournalEntry entry, Color accentColor) {
+    final hasImage = entry.imageUrls.isNotEmpty;
+    final hasAudio = entry.voiceNotePath != null;
+    final hasFiles = entry.fileNames.isNotEmpty;
 
-  Widget _buildQuickJournalCard({
-    required String title,
-    required String desc,
-    required Color cardColor,
-    required String tagText1,
-    required String tagText2,
-    required Color tagBg1,
-    required Color tagBg2,
-    required Color tagColor1,
-    required Color tagColor2,
-  }) {
-    return Container(
-      width: 250,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
+    return GestureDetector(
+      onTap: () => widget.onOpenJournal(entry),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: widget.cardBg,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // Category Tag
+                if (entry.categories.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: accentColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      entry.categories.first,
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: accentColor,
+                      ),
+                    ),
+                  ),
+                const Spacer(),
+                // Mood icon label
+                Text(
+                  "${entry.mood} mood",
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    color: widget.secondaryText,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Text details
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.title,
+                        style: GoogleFonts.outfit(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: widget.primaryText,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        entry.text,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          color: widget.secondaryText,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (hasImage) ...[
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      image: DecorationImage(
+                        image: NetworkImage(entry.imageUrls.first),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            
+            // File & Audio info row
+            if (hasAudio || hasFiles) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  if (hasAudio) ...[
+                    const Icon(CupertinoIcons.mic_fill, size: 14, color: Color(0xFFFFB534)),
+                    const SizedBox(width: 4),
+                    Text(
+                      "Audio Note (${entry.voiceDurationSec}s)",
+                      style: GoogleFonts.outfit(fontSize: 11, color: widget.secondaryText),
+                    ),
+                    if (hasFiles) const SizedBox(width: 16),
+                  ],
+                  if (hasFiles) ...[
+                    Icon(CupertinoIcons.paperclip, size: 14, color: widget.secondaryText),
+                    const SizedBox(width: 4),
+                    Text(
+                      "${entry.fileNames.length} file(s)",
+                      style: GoogleFonts.outfit(fontSize: 11, color: widget.secondaryText),
+                    ),
+                  ],
+                ],
+              ),
+            ]
+          ],
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _buildTag(tagText1, tagBg1, tagColor1),
-              const SizedBox(width: 8),
-              _buildTag(tagText2, tagBg2, tagColor2),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: widget.primaryText)),
-          const SizedBox(height: 4),
-          Text(desc, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTag(String text, Color bg, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
-      child: Text(text, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
     );
   }
 }

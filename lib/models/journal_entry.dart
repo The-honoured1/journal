@@ -14,6 +14,8 @@ class JournalEntry {
   final int voiceDurationSec;
   final List<String> bullets;
   final List<String> categories;
+  final List<String> imageUrls;
+  final List<String> fileNames;
 
   JournalEntry({
     required this.id,
@@ -29,6 +31,8 @@ class JournalEntry {
     this.voiceDurationSec = 0,
     required this.bullets,
     required this.categories,
+    this.imageUrls = const [],
+    this.fileNames = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -46,6 +50,8 @@ class JournalEntry {
       'voiceDurationSec': voiceDurationSec,
       'bullets': bullets,
       'categories': categories,
+      'imageUrls': imageUrls,
+      'fileNames': fileNames,
     };
   }
 
@@ -64,6 +70,8 @@ class JournalEntry {
       voiceDurationSec: map['voiceDurationSec'] ?? 0,
       bullets: List<String>.from(map['bullets'] ?? []),
       categories: List<String>.from(map['categories'] ?? []),
+      imageUrls: List<String>.from(map['imageUrls'] ?? []),
+      fileNames: List<String>.from(map['fileNames'] ?? []),
     );
   }
 

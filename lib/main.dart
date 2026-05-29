@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'providers/storage_provider.dart';
+import 'providers/auth_provider.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'screens/dashboard_screen.dart';
@@ -10,11 +13,20 @@ import 'screens/explore_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/reflection_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'widgets/add_journal_bottom_sheet.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: MyApp()));
+  final prefs = await SharedPreferences.getInstance();
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends ConsumerWidget {
@@ -23,15 +35,20 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = ref.watch(themeProvider);
+    final auth = ref.watch(authProvider);
+
     return MaterialApp(
-      title: 'Solace Journal',
+      title: 'Journal',
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.getLightTheme(),
       darkTheme: AppTheme.getDarkTheme(),
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
-      home: JournalAppHome(
-        isDarkTheme: isDark,
-        onToggleTheme: () => ref.read(themeProvider.notifier).toggleTheme(),
-      ),
+      home: auth.isLoggedIn
+          ? JournalAppHome(
+              isDarkTheme: isDark,
+              onToggleTheme: () => ref.read(themeProvider.notifier).toggleTheme(),
+            )
+          : const WelcomeScreen(),
     );
   }
 }

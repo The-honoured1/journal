@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   final bool isDark;
   final Color primaryText;
   final Color secondaryText;
   final Color cardBg;
   final int entryCount;
-  final int activeScore;
 
   const ProfileScreen({
     super.key,
@@ -17,19 +19,99 @@ class ProfileScreen extends StatelessWidget {
     required this.secondaryText,
     required this.cardBg,
     required this.entryCount,
-    required this.activeScore,
   });
 
+  void _showEditProfileDialog(BuildContext context, WidgetRef ref, String currentName, String currentPic) {
+    final nameController = TextEditingController(text: currentName);
+    final picController = TextEditingController(text: currentPic);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF282522) : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Text(
+            "Edit Profile",
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.bold,
+              color: primaryText,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Your Name",
+                  labelStyle: const TextStyle(color: Colors.grey),
+                  filled: true,
+                  fillColor: isDark ? Colors.black12 : const Color(0xFFF7F5F2),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                style: TextStyle(color: primaryText),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: picController,
+                decoration: InputDecoration(
+                  labelText: "Profile Picture URL",
+                  labelStyle: const TextStyle(color: Colors.grey),
+                  filled: true,
+                  fillColor: isDark ? Colors.black12 : const Color(0xFFF7F5F2),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                style: TextStyle(color: primaryText, fontSize: 13),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (nameController.text.trim().isNotEmpty) {
+                  await ref.read(authProvider.notifier).updateProfileNameAndPic(
+                    nameController.text.trim(),
+                    picController.text.trim(),
+                  );
+                }
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFB534),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text("Save", style: TextStyle(color: Color(0xFF2C2A29), fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authProvider);
     final backgroundColor = isDark ? const Color(0xFF1E1A1A) : Colors.white;
+    final accentColor = const Color(0xFFFFB534);
+
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
         backgroundColor: backgroundColor,
         elevation: 0,
         title: Text(
-          'Profile',
+          'My Profile',
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -44,6 +126,8 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 20),
+            
+            // Profile Card (Name + Avatar)
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -53,50 +137,63 @@ class ProfileScreen extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    width: 60,
-                    height: 60,
-                    decoration: const BoxDecoration(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       image: DecorationImage(
                         image: NetworkImage(
-                          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+                          user.profilePicUrl ?? 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=150&auto=format&fit=crop&q=80',
                         ),
                         fit: BoxFit.cover,
                       ),
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Jose Maria",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: primaryText,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.name,
+                          style: GoogleFonts.outfit(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: primaryText,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "Mindful member since 2024",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: secondaryText,
+                        const SizedBox(height: 4),
+                        Text(
+                          "Reflecting daily",
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            color: secondaryText,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  IconButton(
+                    icon: Icon(Icons.edit_outlined, color: accentColor, size: 22),
+                    onPressed: () => _showEditProfileDialog(
+                      context,
+                      ref,
+                      user.name,
+                      user.profilePicUrl ?? '',
+                    ),
+                  )
                 ],
               ),
             ),
             const SizedBox(height: 20),
+            
+            // Streak and Entry Statistics Cards
             Row(
               children: [
                 Expanded(
                   child: _buildStreakCard(
                     title: "Reflection Streak",
-                    metric: "12 Days",
+                    metric: entryCount > 0 ? "$entryCount Days" : "0 Days",
                     icon: CupertinoIcons.flame_fill,
                     color: const Color(0xFFFFB534),
                   ),
@@ -112,45 +209,65 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
+            
+            // App settings controls card
             Container(
-              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2E241E) : const Color(0xFFFFF0D4),
+                color: cardBg,
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  const Icon(CupertinoIcons.rosette, color: Color(0xFFFFB534), size: 36),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Upgrade to Solace+",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: primaryText,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Unlock detailed AI mood patterns, personalized soundscapes, and cloud reflection backups.",
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: secondaryText,
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
+                  // Dark mode switcher
+                  ListTile(
+                    leading: Icon(
+                      isDark ? Icons.brightness_2 : Icons.brightness_5,
+                      color: accentColor,
                     ),
+                    title: Text(
+                      "Dark Mode",
+                      style: GoogleFonts.outfit(color: primaryText, fontWeight: FontWeight.w500),
+                    ),
+                    trailing: Switch(
+                      value: isDark,
+                      activeColor: accentColor,
+                      onChanged: (val) {
+                        ref.read(themeProvider.notifier).toggleTheme();
+                      },
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 56, endIndent: 16),
+                  
+                  // App state information
+                  ListTile(
+                    leading: Icon(Icons.info_outline, color: secondaryText),
+                    title: Text(
+                      "Version Info",
+                      style: GoogleFonts.outfit(color: primaryText, fontWeight: FontWeight.w500),
+                    ),
+                    trailing: Text(
+                      "1.0.0 (Ad-Free & Private)",
+                      style: GoogleFonts.outfit(color: secondaryText, fontSize: 13),
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 56, endIndent: 16),
+                  
+                  // Logout Button
+                  ListTile(
+                    leading: const Icon(Icons.logout, color: Colors.redAccent),
+                    title: Text(
+                      "Log Out",
+                      style: GoogleFonts.outfit(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                    ),
+                    onTap: () async {
+                      await ref.read(authProvider.notifier).logout();
+                    },
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
           ],
         ),
       ),

@@ -27,16 +27,18 @@ class LocalStorageService {
   }
 
   // Auth local cache
-  Future<void> saveUserSession(String name, String email, bool isLoggedIn) async {
+  Future<void> saveUserSession(String name, String email, String profilePicUrl, bool isLoggedIn) async {
     await _prefs.setString(AppConstants.authNameKey, name);
     await _prefs.setString(AppConstants.authEmailKey, email);
+    await _prefs.setString(AppConstants.authProfilePicKey, profilePicUrl);
     await _prefs.setBool(AppConstants.authLoggedInKey, isLoggedIn);
   }
 
   Map<String, dynamic> getUserSession() {
     return {
-      'name': _prefs.getString(AppConstants.authNameKey) ?? 'Jose Maria',
-      'email': _prefs.getString(AppConstants.authEmailKey) ?? 'jose.maria@solace.com',
+      'name': _prefs.getString(AppConstants.authNameKey) ?? 'Guest',
+      'email': _prefs.getString(AppConstants.authEmailKey) ?? 'guest@journal.com',
+      'profilePicUrl': _prefs.getString(AppConstants.authProfilePicKey) ?? 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=150&auto=format&fit=crop&q=80',
       'isLoggedIn': _prefs.getBool(AppConstants.authLoggedInKey) ?? false,
     };
   }
@@ -44,6 +46,7 @@ class LocalStorageService {
   Future<void> clearUserSession() async {
     await _prefs.remove(AppConstants.authNameKey);
     await _prefs.remove(AppConstants.authEmailKey);
+    await _prefs.remove(AppConstants.authProfilePicKey);
     await _prefs.setBool(AppConstants.authLoggedInKey, false);
   }
 
