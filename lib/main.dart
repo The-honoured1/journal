@@ -1,13 +1,11 @@
 // Updated main.dart with Riverpod and GoRouter integration
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpin.dart';
-import 'router/app_router.dart';
-import 'theme/app_theme.dart';
-import 'providers/theme_provider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
+import 'providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
