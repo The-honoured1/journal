@@ -70,7 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(widget.isDark ? Icons.wb_sunny : Icons.nightlight_round,
+            icon: Icon(widget.isDark ? Icons.wb_sunny : Icons.nightlight_round),
             color: widget.primaryText,
             onPressed: () {
               // Toggle theme callback could be added later

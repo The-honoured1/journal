@@ -21,8 +21,8 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Solace Journal',
       debugShowCheckedModeBanner: false,
-      
-      darkTheme: AppTheme.darkTheme,
+
+      darkTheme: AppTheme.getDarkTheme(),
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
       routerConfig: AppRouter.router,
     );
@@ -44,7 +44,8 @@ class JournalAppHome extends StatefulWidget {
 }
 
 class _JournalAppHomeState extends State<JournalAppHome> {
-  int currentTabIndex = 0; // 0: Home, 1: Explore, 2: Journey (Analytics), 3: Profile
+  int currentTabIndex =
+      0; // 0: Home, 1: Explore, 2: Journey (Analytics), 3: Profile
   int selectedDayIndex = 3; // Thursday (10)
   int activeScore = 420;
   bool isAudioPlaying = false;
@@ -58,14 +59,15 @@ class _JournalAppHomeState extends State<JournalAppHome> {
     {
       "title": "Morning Reflection",
       "date": "March 22, 2025",
-      "text": "I woke up to the soft light filtering through my window, and for the first time in a while, I didn’t rush to check my phone. Instead, I took a deep breath and stretched, feeling my body wake up slowly. The morning routine felt deliberate and peaceful.",
+      "text":
+          "I woke up to the soft light filtering through my window, and for the first time in a while, I didn’t rush to check my phone. Instead, I took a deep breath and stretched, feeling my body wake up slowly. The morning routine felt deliberate and peaceful.",
       "bullets": [
         "The warmth of my morning tea",
         "A quiet moment to myself before the day starts",
-        "The kindness of a stranger who held the door open for me yesterday"
+        "The kindness of a stranger who held the door open for me yesterday",
       ],
       "categories": ["Personal", "Calm", "Motivation"],
-    }
+    },
   ];
 
   double happyPercent = 0.48;
@@ -123,7 +125,15 @@ class _JournalAppHomeState extends State<JournalAppHome> {
     });
   }
 
-  void createNewJournalEntry(String title, String content, String primaryCategory, double happy, double sad, double calm, double anxious) {
+  void createNewJournalEntry(
+    String title,
+    String content,
+    String primaryCategory,
+    double happy,
+    double sad,
+    double calm,
+    double anxious,
+  ) {
     setState(() {
       final newEntry = {
         "title": title,
@@ -132,12 +142,12 @@ class _JournalAppHomeState extends State<JournalAppHome> {
         "bullets": [
           "Took a moment to log my state",
           "Explored my emotional space today",
-          "Committed to mindfulness"
+          "Committed to mindfulness",
         ],
         "categories": [primaryCategory, "Calm"],
       };
       journalEntries.insert(0, newEntry);
-      
+
       activeScore += 15;
       happyPercent = (happyPercent + happy) / 2;
       sadPercent = (sadPercent + sad) / 2;
@@ -158,10 +168,16 @@ class _JournalAppHomeState extends State<JournalAppHome> {
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDarkTheme;
-    final scaffoldBg = isDark ? const Color(0xFF1C1A18) : const Color(0xFFF5F2EB);
+    final scaffoldBg = isDark
+        ? const Color(0xFF1C1A18)
+        : const Color(0xFFF5F2EB);
     final cardBg = isDark ? const Color(0xFF282522) : Colors.white;
-    final primaryText = isDark ? const Color(0xFFECE7E2) : const Color(0xFF2C2A29);
-    final secondaryText = isDark ? const Color(0xFF9E9992) : const Color(0xFF7C7975);
+    final primaryText = isDark
+        ? const Color(0xFFECE7E2)
+        : const Color(0xFF2C2A29);
+    final secondaryText = isDark
+        ? const Color(0xFF9E9992)
+        : const Color(0xFF7C7975);
 
     if (activeReflectionDetail != null) {
       return Scaffold(
@@ -205,7 +221,10 @@ class _JournalAppHomeState extends State<JournalAppHome> {
           children: [
             const SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 8.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -216,10 +235,10 @@ class _JournalAppHomeState extends State<JournalAppHome> {
                         currentTabIndex == 0
                             ? "Hi, Jose Maria"
                             : currentTabIndex == 2
-                                ? "My Journal"
-                                : currentTabIndex == 1
-                                    ? "Explore Solace"
-                                    : "My Journey",
+                            ? "My Journal"
+                            : currentTabIndex == 1
+                            ? "Explore Solace"
+                            : "My Journey",
                         style: TextStyle(
                           fontSize: 24,
                           fontFamily: 'serif',
@@ -244,7 +263,9 @@ class _JournalAppHomeState extends State<JournalAppHome> {
                       IconButton(
                         onPressed: widget.onToggleTheme,
                         icon: Icon(
-                          isDark ? CupertinoIcons.sun_max_fill : CupertinoIcons.moon_fill,
+                          isDark
+                              ? CupertinoIcons.sun_max_fill
+                              : CupertinoIcons.moon_fill,
                           color: const Color(0xFFFFB534),
                           size: 22,
                         ),
@@ -255,7 +276,10 @@ class _JournalAppHomeState extends State<JournalAppHome> {
                         height: 40,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFFFFB534), width: 1.5),
+                          border: Border.all(
+                            color: const Color(0xFFFFB534),
+                            width: 1.5,
+                          ),
                           image: const DecorationImage(
                             image: NetworkImage(
                               "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
@@ -265,7 +289,7 @@ class _JournalAppHomeState extends State<JournalAppHome> {
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -325,7 +349,9 @@ class _JournalAppHomeState extends State<JournalAppHome> {
 
   Widget _buildBottomNavBar(bool isDark, Color cardBg) {
     final activeColor = isDark ? Colors.white : const Color(0xFF2C2A29);
-    final inactiveColor = isDark ? const Color(0xFF6C6864) : const Color(0xFFB0AAA4);
+    final inactiveColor = isDark
+        ? const Color(0xFF6C6864)
+        : const Color(0xFFB0AAA4);
 
     return Container(
       padding: const EdgeInsets.only(bottom: 24, top: 12, left: 16, right: 16),
@@ -348,14 +374,18 @@ class _JournalAppHomeState extends State<JournalAppHome> {
         children: [
           _buildNavItem(
             0,
-            currentTabIndex == 0 ? CupertinoIcons.house_fill : CupertinoIcons.house,
+            currentTabIndex == 0
+                ? CupertinoIcons.house_fill
+                : CupertinoIcons.house,
             "Home",
             activeColor,
             inactiveColor,
           ),
           _buildNavItem(
             1,
-            currentTabIndex == 1 ? CupertinoIcons.compass_fill : CupertinoIcons.compass,
+            currentTabIndex == 1
+                ? CupertinoIcons.compass_fill
+                : CupertinoIcons.compass,
             "Explore",
             activeColor,
             inactiveColor,
@@ -367,7 +397,9 @@ class _JournalAppHomeState extends State<JournalAppHome> {
               width: 50,
               height: 50,
               decoration: const BoxDecoration(
-                color: Color(0xFFFBB540), // Bright yellow-orange matching reference
+                color: Color(
+                  0xFFFBB540,
+                ), // Bright yellow-orange matching reference
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -377,19 +409,27 @@ class _JournalAppHomeState extends State<JournalAppHome> {
                   ),
                 ],
               ),
-              child: const Icon(CupertinoIcons.add, color: Color(0xFF2C2A29), size: 28),
+              child: const Icon(
+                CupertinoIcons.add,
+                color: Color(0xFF2C2A29),
+                size: 28,
+              ),
             ),
           ),
           _buildNavItem(
             2,
-            currentTabIndex == 2 ? CupertinoIcons.doc_text_fill : CupertinoIcons.doc_text,
+            currentTabIndex == 2
+                ? CupertinoIcons.doc_text_fill
+                : CupertinoIcons.doc_text,
             "Journey",
             activeColor,
             inactiveColor,
           ),
           _buildNavItem(
             3,
-            currentTabIndex == 3 ? CupertinoIcons.person_fill : CupertinoIcons.person,
+            currentTabIndex == 3
+                ? CupertinoIcons.person_fill
+                : CupertinoIcons.person,
             "Profile",
             activeColor,
             inactiveColor,
@@ -399,7 +439,13 @@ class _JournalAppHomeState extends State<JournalAppHome> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, Color activeColor, Color inactiveColor) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    String label,
+    Color activeColor,
+    Color inactiveColor,
+  ) {
     final isSelected = currentTabIndex == index;
     return GestureDetector(
       onTap: () {
