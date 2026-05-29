@@ -1,157 +1,27 @@
-import 'dart:async';
-import 'package:flutter/cupertino.dart';
+// Updated main.dart with Riverpod and GoRouter integration
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'router/app_router.dart';
+import 'theme/app_theme.dart';
 
-import 'screens/dashboard_screen.dart';
-import 'screens/explore_screen.dart';
-import 'screens/analytics_screen.dart';
-import 'screens/profile_screen.dart';
-import 'screens/reflection_screen.dart';
-import 'widgets/add_journal_bottom_sheet.dart';
-
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  bool isDarkTheme = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = ref.watch(themeProvider);
+    return MaterialApp.router(
       title: 'Solace Journal',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: isDarkTheme ? const Color(0xFF1C1A18) : const Color(0xFFF5F5F5),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFFB534),
-          primary: const Color(0xFFFFB534),
-          surface: isDarkTheme ? const Color(0xFF282522) : const Color(0xFFF5F2EB),
-          brightness: isDarkTheme ? Brightness.dark : Brightness.light,
-        ),
-        textTheme: TextTheme(
-          displayLarge: TextStyle(
-            fontFamily: 'serif',
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: isDarkTheme ? const Color(0xFFECE7E2) : const Color(0xFF2C2A29),
-          ),
-          titleLarge: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: isDarkTheme ? const Color(0xFFECE7E2) : const Color(0xFF2C2A29),
-          ),
-          bodyLarge: TextStyle(
-            fontSize: 16,
-            color: isDarkTheme ? const Color(0xFF9E9992) : const Color(0xFF5C5A58),
-            height: 1.5,
-          ),
-          bodyMedium: TextStyle(
-            fontSize: 14,
-            color: isDarkTheme ? const Color(0xFF7C7975) : const Color(0xFF7C7975),
-          ),
-        ),
-      ),
-      home: ResponsiveDeviceWrapper(
-        child: JournalAppHome(
-          isDarkTheme: isDarkTheme,
-          onToggleTheme: () {
-            setState(() {
-              isDarkTheme = !isDarkTheme;
-            });
-          },
-        ),
-      ),
-    );
-  }
-}
-
-/// A responsive wrapper that frames the app inside a centered mobile simulator bezel on wide screens
-/// and expands to full screen on real mobile viewports.
-class ResponsiveDeviceWrapper extends StatelessWidget {
-  final Widget child;
-
-  const ResponsiveDeviceWrapper({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isDesktop = size.width > 500;
-
-    if (!isDesktop) {
-      return child;
-    }
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFE2DDD5),
-      body: Center(
-        child: Container(
-          width: 395,
-          height: 835,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(52),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.12),
-                blurRadius: 40,
-                offset: const Offset(0, 20),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(52),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFF2C2A29), width: 10),
-                borderRadius: BorderRadius.circular(52),
-              ),
-              child: Stack(
-                children: [
-                  child,
-                  // Dynamic island/top notch bezel simulator
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: Container(
-                        width: 110,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Bottom home indicator bar simulator
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 6.0),
-                      child: Container(
-                        width: 130,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2C2A29).withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+      routerConfig: AppRouter.router,
     );
   }
 }
