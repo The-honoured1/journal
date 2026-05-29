@@ -62,57 +62,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(calendarDays.length, (index) {
                 final isSelected = widget.selectedDayIndex == index;
+                final dayName = calendarDays[index]["day"]!;
+                final dayNum = calendarDays[index]["num"]!;
 
                 return GestureDetector(
                   onTap: () => widget.onDaySelect(index),
-                  child: Column(
-                    children: [
-                      Text(
-                        calendarDays[index]["day"]!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected ? const Color(0xFF2C2A29) : const Color(0xFF9E9992),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFFFBB540)
-                              : (widget.isDark ? const Color(0xFF282522) : Colors.white),
-                          shape: BoxShape.circle,
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: const Color(0xFFFBB540).withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  )
-                                ]
-                              : [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.03),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 1),
-                                  )
-                                ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            calendarDays[index]["num"]!,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF2C2A29),
-                            ),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 44,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFFFBB540)
+                          : (widget.isDark ? const Color(0xFF282522) : Colors.white),
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFFFBB540).withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              )
+                            ]
+                          : [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              )
+                            ],
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          dayName,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected
+                                ? const Color(0xFF2C2A29)
+                                : (widget.isDark ? const Color(0xFF9E9992) : const Color(0xFF7C7975)),
                           ),
                         ),
-                      ),
-                    ],
+                        Text(
+                          dayNum,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? const Color(0xFF2C2A29)
+                                : (widget.isDark ? Colors.white : const Color(0xFF2C2A29)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               }),

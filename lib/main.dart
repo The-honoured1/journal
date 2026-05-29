@@ -13,8 +13,15 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool isDarkTheme = false;
 
   @override
   Widget build(BuildContext context) {
@@ -23,244 +30,43 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+        scaffoldBackgroundColor: isDarkTheme ? const Color(0xFF1C1A18) : const Color(0xFFF5F5F5),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFFFB534),
           primary: const Color(0xFFFFB534),
-          background: const Color(0xFFF5F2EB),
+          surface: isDarkTheme ? const Color(0xFF282522) : const Color(0xFFF5F2EB),
+          brightness: isDarkTheme ? Brightness.dark : Brightness.light,
         ),
-        textTheme: const TextTheme(
+        textTheme: TextTheme(
           displayLarge: TextStyle(
             fontFamily: 'serif',
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2C2A29),
+            color: isDarkTheme ? const Color(0xFFECE7E2) : const Color(0xFF2C2A29),
           ),
           titleLarge: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2C2A29),
+            color: isDarkTheme ? const Color(0xFFECE7E2) : const Color(0xFF2C2A29),
           ),
           bodyLarge: TextStyle(
             fontSize: 16,
-            color: Color(0xFF5C5A58),
+            color: isDarkTheme ? const Color(0xFF9E9992) : const Color(0xFF5C5A58),
             height: 1.5,
           ),
           bodyMedium: TextStyle(
             fontSize: 14,
-            color: Color(0xFF7C7975),
+            color: isDarkTheme ? const Color(0xFF7C7975) : const Color(0xFF7C7975),
           ),
         ),
       ),
-      home: const DeviceShowcaseFrame(),
-    );
-  }
-}
-
-/// A premium mockup device chassis for Web browsers to display the high-fidelity
-/// mobile UI in a gorgeous, polished container, while adapting to full screen on small displays.
-class DeviceShowcaseFrame extends StatefulWidget {
-  const DeviceShowcaseFrame({super.key});
-
-  @override
-  State<DeviceShowcaseFrame> createState() => _DeviceShowcaseFrameState();
-}
-
-class _DeviceShowcaseFrameState extends State<DeviceShowcaseFrame> {
-  bool isDarkTheme = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isDesktop = size.width > 700;
-
-    Widget appContent = JournalAppHome(
-      isDarkTheme: isDarkTheme,
-      onToggleTheme: () {
-        setState(() {
-          isDarkTheme = !isDarkTheme;
-        });
-      },
-    );
-
-    if (!isDesktop) {
-      return appContent;
-    }
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFE2DDD5),
-      body: Row(
-        children: [
-          // Left panel info and controller
-          Expanded(
-            flex: 3,
-            child: Padding(
-              padding: const EdgeInsets.all(40.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFB534).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(CupertinoIcons.heart_fill, size: 16, color: Color(0xFFFFB534)),
-                        SizedBox(width: 6),
-                        Text(
-                          "Calm Mind, Cozy Design",
-                          style: TextStyle(
-                            color: Color(0xFF785213),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "Solace Daily Journal",
-                    style: TextStyle(
-                      fontFamily: 'serif',
-                      fontSize: 48,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF2C2A29),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "An iOS-style mindful workspace designed to track emotions, record reflections, and celebrate tiny joys.",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Color(0xFF6C6A66),
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 36),
-                  _buildFeatureRow(CupertinoIcons.sparkles, "Micro-animations & dynamic states"),
-                  _buildFeatureRow(CupertinoIcons.music_note_2, "Interactive reflection audio & visualizer"),
-                  _buildFeatureRow(CupertinoIcons.chart_bar_fill, "Live emotion tracking & score metrics"),
-                  _buildFeatureRow(CupertinoIcons.brightness, "Interactive layout toggle & custom illustrations"),
-                  const SizedBox(height: 40),
-                  Row(
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            isDarkTheme = !isDarkTheme;
-                          });
-                        },
-                        icon: Icon(
-                          isDarkTheme ? CupertinoIcons.sun_max : CupertinoIcons.moon,
-                          color: const Color(0xFF2C2A29),
-                        ),
-                        label: Text(
-                          isDarkTheme ? "Switch to Warm Light" : "Switch to Cozy Dark",
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C2A29)),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Right panel: The Phone Mockup container
-          Expanded(
-            flex: 4,
-            child: Center(
-              child: Container(
-                width: 395,
-                height: 835,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(52),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x33000000),
-                      blurRadius: 40,
-                      offset: Offset(0, 20),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(52),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF2C2A29), width: 10),
-                      borderRadius: BorderRadius.circular(52),
-                    ),
-                    child: Stack(
-                      children: [
-                        appContent,
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 10.0),
-                            child: Container(
-                              width: 100,
-                              height: 25,
-                              decoration: BoxDecoration(
-                                color: Colors.black,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 6.0),
-                            child: Container(
-                              width: 130,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF2C2A29).withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: const Color(0xFFFFB534)),
-          const SizedBox(width: 12),
-          Text(
-            text,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF2C2A29),
-            ),
-          ),
-        ],
+      home: JournalAppHome(
+        isDarkTheme: isDarkTheme,
+        onToggleTheme: () {
+          setState(() {
+            isDarkTheme = !isDarkTheme;
+          });
+        },
       ),
     );
   }
