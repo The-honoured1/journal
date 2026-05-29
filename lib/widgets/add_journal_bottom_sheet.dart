@@ -394,7 +394,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "New Reflection",
+                  "New Entry",
                   style: TextStyle(
                     fontFamily: 'serif',
                     fontSize: 22,
@@ -412,7 +412,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet> {
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
-                hintText: "Title of reflection...",
+                hintText: "Give this entry a title...",
                 hintStyle: const TextStyle(color: Colors.grey),
                 filled: true,
                 fillColor: widget.isDark ? Colors.black12 : const Color(0xFFF7F5F2),
@@ -429,7 +429,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet> {
               controller: _textController,
               maxLines: 4,
               decoration: InputDecoration(
-                hintText: "How are you feeling inside? What made you smile today...",
+                hintText: "What happened today? Write anything — thoughts, events, feelings...",
                 hintStyle: const TextStyle(color: Colors.grey),
                 filled: true,
                 fillColor: widget.isDark ? Colors.black12 : const Color(0xFFF7F5F2),
@@ -641,37 +641,40 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet> {
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTextColor),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: ["Personal", "Calm", "Motivation"].map((category) {
-                final isSel = selectedCategory == category;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedCategory = category;
-                    });
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSel ? const Color(0xFFFFB534) : (widget.isDark ? Colors.black26 : const Color(0xFFF7F5F2)),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      category,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: isSel ? const Color(0xFF2C2A29) : Colors.grey,
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: ["Personal", "Work", "Gratitude", "Health", "Venting", "Goals"].map((category) {
+                  final isSel = selectedCategory == category;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedCategory = category;
+                      });
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSel ? const Color(0xFFFFB534) : (widget.isDark ? Colors.black26 : const Color(0xFFF7F5F2)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        category,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: isSel ? const Color(0xFF2C2A29) : Colors.grey,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              ),
             ),
             const SizedBox(height: 20),
             Text(
-              "Rate Today's Emotions",
+              "How were you feeling?",
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTextColor),
             ),
             const SizedBox(height: 12),

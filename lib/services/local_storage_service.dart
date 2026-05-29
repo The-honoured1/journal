@@ -17,12 +17,7 @@ class LocalStorageService {
   // Load journal entries
   List<JournalEntry> loadEntries() {
     final list = _prefs.getStringList(AppConstants.journalPrefsKey);
-    if (list == null) {
-      // Seed initial data so the user isn't greeted with a totally blank app
-      final seedList = AppConstants.seedEntries.map((e) => JournalEntry.fromMap(e)).toList();
-      saveEntries(seedList);
-      return seedList;
-    }
+    if (list == null) return [];
     return list.map((e) => JournalEntry.fromJson(e)).toList();
   }
 

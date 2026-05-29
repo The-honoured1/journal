@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AuthorScreen extends StatelessWidget {
@@ -15,6 +16,20 @@ class AuthorScreen extends StatelessWidget {
     required this.secondaryText,
     required this.cardBg,
   });
+
+  void _copyToClipboard(BuildContext context, String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "$label copied to clipboard!",
+          style: const TextStyle(color: Color(0xFF2C2A29), fontWeight: FontWeight.bold),
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFFFFB534),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +167,67 @@ class AuthorScreen extends StatelessWidget {
               color: const Color(0xFF7A7C75),
             ),
             
+            const SizedBox(height: 32),
+            
+            // Get in Touch section
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: Text(
+                  "Get in Touch 💬",
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: primaryText,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            // Contact Buttons
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                children: [
+                  _buildContactTile(
+                    context: context,
+                    icon: CupertinoIcons.paperplane_fill,
+                    title: "Telegram (Preferred)",
+                    value: "@Th3_honoured1nd",
+                    copyText: "https://t.me/Th3_honoured1nd",
+                    description: "Best way to reach me — bugs, feedback, collabs, or hiring for your next project",
+                    color: const Color(0xFF0088cc),
+                  ),
+                  const Divider(height: 1, indent: 56, endIndent: 16),
+                  _buildContactTile(
+                    context: context,
+                    icon: Icons.email,
+                    title: "Email",
+                    value: "christian4onos@gmail.com",
+                    copyText: "christian4onos@gmail.com",
+                    description: "Send bug reports, project proposals, or business inquiries here",
+                    color: const Color(0xFFD44638),
+                  ),
+                  const Divider(height: 1, indent: 56, endIndent: 16),
+                  _buildContactTile(
+                    context: context,
+                    icon: CupertinoIcons.hand_point_right_fill,
+                    title: "GitHub Portfolio",
+                    value: "The-honoured1",
+                    copyText: "https://github.com/The-honoured1",
+                    description: "Browse my open-source work and other apps I've built",
+                    color: isDark ? const Color(0xFFCCCCCC) : const Color(0xFF333333),
+                  ),
+                ],
+              ),
+            ),
+            
             const SizedBox(height: 40),
             
             // Handcrafted Signoff
@@ -220,6 +296,74 @@ class AuthorScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildContactTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String value,
+    required String copyText,
+    required String description,
+    required Color color,
+  }) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: color, size: 20),
+      ),
+      title: Row(
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: primaryText,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Text(
+              "Copy",
+              style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.grey),
+            ),
+          ),
+        ],
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: GoogleFonts.outfit(
+              color: color,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            description,
+            style: GoogleFonts.outfit(
+              color: secondaryText,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+      onTap: () => _copyToClipboard(context, copyText, title),
     );
   }
 }
