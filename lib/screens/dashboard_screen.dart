@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../widgets/sun_illustration.dart';
 import '../widgets/cozy_moon_illustration.dart';
 
@@ -373,6 +374,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
-  }   );
+  }
+
+  Widget _buildQuickJournalCard({
+    required String title,
+    required String desc,
+    required Color cardColor,
+    required String tagText1,
+    required String tagText2,
+    required Color tagBg1,
+    required Color tagBg2,
+    required Color tagColor1,
+    required Color tagColor2,
+  }) {
+    return Container(
+      width: 250,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _buildTag(tagText1, tagBg1, tagColor1),
+              const SizedBox(width: 8),
+              _buildTag(tagText2, tagBg2, tagColor2),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: widget.primaryText)),
+          const SizedBox(height: 4),
+          Text(desc, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTag(String text, Color bg, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+      child: Text(text, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
+    );
   }
 }
