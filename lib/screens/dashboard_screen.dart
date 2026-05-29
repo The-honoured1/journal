@@ -3,6 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 import '../widgets/sun_illustration.dart';
 import '../widgets/cozy_moon_illustration.dart';
 
+// Helper to get serif font style
+TextStyle getSerifStyle({double? fontSize, FontWeight? fontWeight, Color? color}) {
+  return TextStyle(
+    fontFamily: 'serif',
+    fontSize: fontSize,
+    fontWeight: fontWeight,
+    color: color,
+  );
+}
+
 class DashboardScreen extends StatefulWidget {
   final bool isDark;
   final Color primaryText;
@@ -223,10 +233,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 illustration: const SunIllustration(),
                 title: "Let’s start your day",
                 description: "Begin with a mindful morning\nreflections.",
-                titleStyle: GoogleFonts.serif(
+                titleStyle: const TextStyle(
+                  fontFamily: 'serif',
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF2C2A29),
+                  color: Color(0xFF2C2A29),
                 ),
                 descStyle: const TextStyle(
                   fontSize: 13,

@@ -1,11 +1,16 @@
-// Updated main.dart with Riverpod and GoRouter integration
+// Updated main.dart with Riverpod integration
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/explore_screen.dart';
+import 'screens/analytics_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/reflection_screen.dart';
+import 'widgets/add_journal_bottom_sheet.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,13 +23,15 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = ref.watch(themeProvider);
-    return MaterialApp.router(
+    return MaterialApp(
       title: 'Solace Journal',
       debugShowCheckedModeBanner: false,
-
       darkTheme: AppTheme.getDarkTheme(),
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
-      routerConfig: AppRouter.router,
+      home: JournalAppHome(
+        isDarkTheme: isDark,
+        onToggleTheme: () => ref.read(themeProvider.notifier).toggleTheme(),
+      ),
     );
   }
 }
