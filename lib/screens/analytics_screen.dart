@@ -1,4 +1,6 @@
+// lib/screens/analytics_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AnalyticsScreen extends StatelessWidget {
@@ -30,10 +32,157 @@ class AnalyticsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final backgroundColor = isDark ? const Color(0xFF1E1A1A) : Colors.white;
+
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
         backgroundColor: backgroundColor,
+        elevation: 0,
+        title: Text(
+          'Analytics',
+          style: GoogleFonts.inter(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: primaryText,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            // High-level score and subtitle
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    "$activeScore",
+                    style: TextStyle(
+                      fontSize: 68,
+                      fontWeight: FontWeight.w600,
+                      color: primaryText,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "Celebrate what made you smile today.",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: secondaryText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 26),
+            // Emotions Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Emotions",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: primaryText,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Here are four core emotions for your journal",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: secondaryText,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  // Vertical pill-shaped bars
+                  SizedBox(
+                    height: 220,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        _buildVerticalBar(
+                          label: "Happy",
+                          value: happy,
+                          color: const Color(0xFFFBB540),
+                          isDark: isDark,
+                        ),
+                        _buildVerticalBar(
+                          label: "Sad",
+                          value: sad,
+                          color: const Color(0xFF784136),
+                          isDark: isDark,
+                        ),
+                        _buildVerticalBar(
+                          label: "Calm",
+                          value: calm,
+                          color: const Color(0xFF839B3D),
+                          isDark: isDark,
+                        ),
+                        _buildVerticalBar(
+                          label: "Anxious",
+                          value: anxious,
+                          color: const Color(0xFF706E66),
+                          isDark: isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 36),
+            // CTA button
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: onCreateNew,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFBB540),
+                  foregroundColor: const Color(0xFF2C2A29),
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                ),
+                child: const Text(
+                  "Create a New Journal",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
         elevation: 0,
         title: Text(
           'Analytics',
