@@ -16,6 +16,8 @@ import 'screens/profile_screen.dart';
 import 'screens/reflection_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'widgets/add_journal_bottom_sheet.dart';
+import 'widgets/daily_checkin_modal.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,6 +81,78 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
 
   Set<String> selectedCategories = {"Personal", "Calm", "Motivation"};
   JournalEntry? activeReflectionDetail;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkDailyCheckin();
+    });
+  }
+
+  void _checkDailyCheckin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now();
+    final todayStr = "${today.year}-${today.month}-${today.day}";
+    if (prefs.getString('last_checkin_date') != todayStr) {
+      if (mounted) {
+        _showDailyCheckinModal();
+      }
+    }
+  }
+
+  void _showDailyCheckinModal() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: "Daily Check-in",
+      barrierColor: Colors.black.withOpacity(0.6),
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (context, anim1, anim2) {
+        return DailyCheckinModal(
+          isDark: widget.isDarkTheme,
+          onComplete: (happy, sad, calm, anxious, feelingsText) {
+            _saveDailyCheckin(happy, sad, calm, anxious);
+            if (feelingsText.trim().isNotEmpty) {
+              createNewJournalEntry(
+                "Daily Check-in",
+                feelingsText.trim(),
+                "Personal",
+                happy,
+                sad,
+                calm,
+                anxious,
+                [],
+                [],
+                null,
+                0,
+              );
+            }
+          },
+        );
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
+          child: FadeTransition(
+            opacity: anim1,
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  void _saveDailyCheckin(double happy, double sad, double calm, double anxious) async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now();
+    final todayStr = "${today.year}-${today.month}-${today.day}";
+    await prefs.setString('last_checkin_date', todayStr);
+    await prefs.setDouble('today_happy', happy);
+    await prefs.setDouble('today_sad', sad);
+    await prefs.setDouble('today_calm', calm);
+    await prefs.setDouble('today_anxious', anxious);
+  }
 
   void toggleAudioPlayback() {
     setState(() {
