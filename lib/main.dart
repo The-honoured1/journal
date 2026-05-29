@@ -81,6 +81,7 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
 
   Set<String> selectedCategories = {"Personal", "Calm", "Motivation"};
   JournalEntry? activeReflectionDetail;
+  String? todayMood;
 
   @override
   void initState() {
@@ -94,7 +95,22 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now();
     final todayStr = "${today.year}-${today.month}-${today.day}";
-    if (prefs.getString('last_checkin_date') != todayStr) {
+    if (prefs.getString('last_checkin_date') == todayStr) {
+      final happy = prefs.getDouble('today_happy') ?? 0.5;
+      final sad = prefs.getDouble('today_sad') ?? 0.1;
+      final calm = prefs.getDouble('today_calm') ?? 0.5;
+      final anxious = prefs.getDouble('today_anxious') ?? 0.1;
+      
+      String mood = "Calm";
+      double maxVal = calm;
+      if (happy > maxVal) { mood = "Happy"; maxVal = happy; }
+      if (sad > maxVal) { mood = "Sad"; maxVal = sad; }
+      if (anxious > maxVal) { mood = "Anxious"; }
+
+      setState(() {
+        todayMood = mood;
+      });
+    } else {
       if (mounted) {
         _showDailyCheckinModal();
       }
@@ -113,6 +129,17 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
           isDark: widget.isDarkTheme,
           onComplete: (happy, sad, calm, anxious, feelingsText) {
             _saveDailyCheckin(happy, sad, calm, anxious);
+
+            String mood = "Calm";
+            double maxVal = calm;
+            if (happy > maxVal) { mood = "Happy"; maxVal = happy; }
+            if (sad > maxVal) { mood = "Sad"; maxVal = sad; }
+            if (anxious > maxVal) { mood = "Anxious"; }
+
+            setState(() {
+              todayMood = mood;
+            });
+
             if (feelingsText.trim().isNotEmpty) {
               createNewJournalEntry(
                 "Daily Check-in",
@@ -338,7 +365,9 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
                       ),
                       if (currentTabIndex == 0)
                         Text(
-                          "Ready for a peaceful day?",
+                          todayMood != null
+                              ? "Today you are feeling $todayMood ${todayMood == 'Happy' ? '😊' : todayMood == 'Sad' ? '😔' : todayMood == 'Calm' ? '🍃' : '😰'}"
+                              : "Ready for a peaceful day?",
                           style: TextStyle(fontSize: 14, color: secondaryText),
                         ),
                       if (currentTabIndex == 1)
