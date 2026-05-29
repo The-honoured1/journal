@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddJournalBottomSheet extends StatefulWidget {
   final bool isDark;
@@ -40,10 +41,10 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
   String selectedCategory = "Personal";
 
   // Emotion values (0.0 – 1.0)
-  double happyVal = 0.48;
-  double sadVal = 0.33;
-  double calmVal = 0.27;
-  double anxiousVal = 0.40;
+  double happyVal = 0.5;
+  double sadVal = 0.1;
+  double calmVal = 0.5;
+  double anxiousVal = 0.1;
 
   // Local images picked from device
   List<XFile> pickedImages = [];
@@ -57,24 +58,29 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
   String? recordedVoicePath;
   int recordedVoiceDuration = 0;
 
-  // Emotion definitions
-  static const _emotions = [
-    {'label': 'Happy', 'emoji': '😊', 'key': 'happy'},
-    {'label': 'Sad', 'emoji': '😔', 'key': 'sad'},
-    {'label': 'Calm', 'emoji': '🍃', 'key': 'calm'},
-    {'label': 'Anxious', 'emoji': '😰', 'key': 'anxious'},
-  ];
-
-  static const _emotionColors = {
-    'happy': Color(0xFFFFB534),
-    'sad': Color(0xFF78473B),
-    'calm': Color(0xFF8BA64F),
-    'anxious': Color(0xFF7A7C75),
-  };
-
   static const _categories = [
     "Personal", "Work", "Gratitude", "Health", "Venting", "Goals"
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDailyEmotions();
+  }
+
+  void _loadDailyEmotions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now();
+    final todayStr = "${today.year}-${today.month}-${today.day}";
+    if (prefs.getString('last_checkin_date') == todayStr) {
+      setState(() {
+        happyVal = prefs.getDouble('today_happy') ?? 0.5;
+        sadVal = prefs.getDouble('today_sad') ?? 0.1;
+        calmVal = prefs.getDouble('today_calm') ?? 0.5;
+        anxiousVal = prefs.getDouble('today_anxious') ?? 0.1;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -83,27 +89,6 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
     recordTimer?.cancel();
     waveformTimer?.cancel();
     super.dispose();
-  }
-
-  double _getEmotion(String key) {
-    switch (key) {
-      case 'happy': return happyVal;
-      case 'sad': return sadVal;
-      case 'calm': return calmVal;
-      case 'anxious': return anxiousVal;
-      default: return 0;
-    }
-  }
-
-  void _setEmotion(String key, double val) {
-    setState(() {
-      switch (key) {
-        case 'happy': happyVal = val; break;
-        case 'sad': sadVal = val; break;
-        case 'calm': calmVal = val; break;
-        case 'anxious': anxiousVal = val; break;
-      }
-    });
   }
 
   Future<void> _pickImages() async {
@@ -278,53 +263,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
             ),
             const SizedBox(height: 20),
 
-            // ── Emotion bars (reference design) ─────────────
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Emotions",
-                    style: GoogleFonts.outfit(
-                      fontSize: 16, fontWeight: FontWeight.bold, color: primaryText,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "Here are four core emotions for your journal",
-                    style: GoogleFonts.outfit(fontSize: 11, color: secondaryText),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height: 180,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: _emotions.map((e) {
-                        final key = e['key']!;
-                        final val = _getEmotion(key);
-                        final color = _emotionColors[key]!;
-                        final pct = (val * 100).toInt();
-                        return _EmotionBar(
-                          label: e['label']!,
-                          value: val,
-                          percent: pct,
-                          color: color,
-                          isDark: widget.isDark,
-                          onChanged: (v) => _setEmotion(key, v),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+
 
             // ── Category chips ───────────────────────────────
             Text(
@@ -509,84 +448,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
   }
 }
 
-// ── Tappable emotion bar that responds to vertical drag ─────────────────────
-class _EmotionBar extends StatelessWidget {
-  final String label;
-  final double value;
-  final int percent;
-  final Color color;
-  final bool isDark;
-  final ValueChanged<double> onChanged;
 
-  const _EmotionBar({
-    required this.label,
-    required this.value,
-    required this.percent,
-    required this.color,
-    required this.isDark,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final trackColor = isDark ? const Color(0xFF3A3632) : const Color(0xFFEEEBE5);
-    const barW = 44.0;
-    const maxH = 140.0;
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        // Percent label above bar
-        Text(
-          "$percent%",
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        const SizedBox(height: 6),
-
-        // Bar (GestureDetector for vertical drag)
-        GestureDetector(
-          onVerticalDragUpdate: (d) {
-            final delta = -d.delta.dy / maxH;
-            final newVal = (value + delta).clamp(0.05, 1.0);
-            onChanged(newVal);
-          },
-          child: Container(
-            width: barW,
-            height: maxH,
-            decoration: BoxDecoration(
-              color: trackColor,
-              borderRadius: BorderRadius.circular(22),
-            ),
-            alignment: Alignment.bottomCenter,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              width: barW,
-              height: maxH * value,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(22),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-
-        // Label
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: isDark ? const Color(0xFF9E9992) : const Color(0xFF7C7975),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 // ── Small toolbar icon button ────────────────────────────────────────────────
 class _ToolbarBtn extends StatelessWidget {
