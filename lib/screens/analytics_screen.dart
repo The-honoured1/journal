@@ -35,6 +35,7 @@ class AnalyticsScreen extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 10),
+            // High-level score and custom subtitle matching image
             Center(
               child: Column(
                 children: [
@@ -42,15 +43,14 @@ class AnalyticsScreen extends StatelessWidget {
                     "$activeScore",
                     style: TextStyle(
                       fontSize: 68,
-                      fontFamily: 'serif',
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w600,
                       color: primaryText,
-                      letterSpacing: -2,
+                      letterSpacing: -1,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    "Mindfulness points collected",
+                    "Celebrate what made you smile today.",
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -61,6 +61,7 @@ class AnalyticsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 26),
+            // Emotions Card
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -68,7 +69,7 @@ class AnalyticsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withOpacity(0.02),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   )
@@ -78,22 +79,23 @@ class AnalyticsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Emotions Breakdown",
+                    "Emotions",
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: primaryText,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "These are your four core logged feelings.",
+                    "Here are four core emotions for your journal",
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: secondaryText,
                     ),
                   ),
                   const SizedBox(height: 28),
+                  // Vertical pill-shaped bars
                   SizedBox(
                     height: 220,
                     child: Row(
@@ -103,25 +105,25 @@ class AnalyticsScreen extends StatelessWidget {
                         _buildVerticalBar(
                           label: "Happy",
                           value: happy,
-                          color: const Color(0xFFFFB534),
+                          color: const Color(0xFFFBB540), // Warm egg-yolk yellow
                           isDark: isDark,
                         ),
                         _buildVerticalBar(
                           label: "Sad",
                           value: sad,
-                          color: const Color(0xFF78473B),
+                          color: const Color(0xFF784136), // Chocolate brown
                           isDark: isDark,
                         ),
                         _buildVerticalBar(
                           label: "Calm",
                           value: calm,
-                          color: const Color(0xFF8BA64F),
+                          color: const Color(0xFF839B3D), // Sage olive green
                           isDark: isDark,
                         ),
                         _buildVerticalBar(
                           label: "Anxious",
                           value: anxious,
-                          color: const Color(0xFF7A7C75),
+                          color: const Color(0xFF706E66), // Slate gray taupe
                           isDark: isDark,
                         ),
                       ],
@@ -131,13 +133,14 @@ class AnalyticsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 36),
+            // Bottom CTA Action Button
             SizedBox(
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
                 onPressed: onCreateNew,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFB534),
+                  backgroundColor: const Color(0xFFFBB540),
                   foregroundColor: const Color(0xFF2C2A29),
                   elevation: 0,
                   shadowColor: Colors.transparent,
@@ -168,7 +171,7 @@ class AnalyticsScreen extends StatelessWidget {
     required bool isDark,
   }) {
     final pct = (value * 100).toInt();
-    final barHeight = 160.0 * value;
+    final barHeight = 130.0 * value; // Max height mapping
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -177,7 +180,7 @@ class AnalyticsScreen extends StatelessWidget {
           width: 50,
           height: 165,
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1C1A) : const Color(0xFFF7F5F2),
+            color: isDark ? const Color(0xFF1E1C1A) : const Color(0xFFEFECE6),
             borderRadius: BorderRadius.circular(25),
           ),
           child: Stack(
@@ -187,7 +190,7 @@ class AnalyticsScreen extends StatelessWidget {
                 duration: const Duration(milliseconds: 800),
                 curve: Curves.easeOutBack,
                 width: 50,
-                height: barHeight + 35,
+                height: barHeight + 35, // Base height buffer for rounded top/bottom capsule look
                 decoration: BoxDecoration(
                   color: color,
                   borderRadius: BorderRadius.circular(25),
@@ -201,7 +204,7 @@ class AnalyticsScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: color == const Color(0xFFFFB534)
+                        color: color == const Color(0xFFFBB540)
                             ? const Color(0xFF2C2A29)
                             : Colors.white,
                       ),

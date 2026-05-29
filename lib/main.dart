@@ -561,7 +561,7 @@ class _JournalAppHomeState extends State<JournalAppHome> {
   }
 
   Widget _buildBottomNavBar(bool isDark, Color cardBg) {
-    const activeColor = Color(0xFFFFB534);
+    final activeColor = isDark ? Colors.white : const Color(0xFF2C2A29);
     final inactiveColor = isDark ? const Color(0xFF6C6864) : const Color(0xFFB0AAA4);
 
     return Container(
@@ -583,19 +583,32 @@ class _JournalAppHomeState extends State<JournalAppHome> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildNavItem(0, CupertinoIcons.house_fill, "Home", activeColor, inactiveColor),
-          _buildNavItem(1, CupertinoIcons.compass_fill, "Explore", activeColor, inactiveColor),
+          _buildNavItem(
+            0,
+            currentTabIndex == 0 ? CupertinoIcons.house_fill : CupertinoIcons.house,
+            "Home",
+            activeColor,
+            inactiveColor,
+          ),
+          _buildNavItem(
+            1,
+            currentTabIndex == 1 ? CupertinoIcons.compass_fill : CupertinoIcons.compass,
+            "Explore",
+            activeColor,
+            inactiveColor,
+          ),
+          // Center Floating + Button
           GestureDetector(
             onTap: () => _showAddJournalModal(context),
             child: Container(
               width: 50,
               height: 50,
               decoration: const BoxDecoration(
-                color: Color(0xFFFFB534),
+                color: Color(0xFFFBB540), // Bright yellow-orange matching reference
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0x33FFB534),
+                    color: Color(0x33FBB540),
                     blurRadius: 10,
                     offset: Offset(0, 4),
                   ),
@@ -604,8 +617,20 @@ class _JournalAppHomeState extends State<JournalAppHome> {
               child: const Icon(CupertinoIcons.add, color: Color(0xFF2C2A29), size: 28),
             ),
           ),
-          _buildNavItem(2, CupertinoIcons.chart_bar_fill, "Journey", activeColor, inactiveColor),
-          _buildNavItem(3, CupertinoIcons.person_fill, "Profile", activeColor, inactiveColor),
+          _buildNavItem(
+            2,
+            currentTabIndex == 2 ? CupertinoIcons.doc_text_fill : CupertinoIcons.doc_text,
+            "Journey",
+            activeColor,
+            inactiveColor,
+          ),
+          _buildNavItem(
+            3,
+            currentTabIndex == 3 ? CupertinoIcons.person_fill : CupertinoIcons.person,
+            "Profile",
+            activeColor,
+            inactiveColor,
+          ),
         ],
       ),
     );

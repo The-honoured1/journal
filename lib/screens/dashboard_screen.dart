@@ -29,7 +29,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final PageController _pageController = PageController(viewportFraction: 0.85);
+  final PageController _pageController = PageController(viewportFraction: 0.80);
 
   final List<Map<String, String>> calendarDays = [
     {"day": "Mon", "num": "7"},
@@ -55,71 +55,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 16),
+          // Horizontal calendar row matching reference image exactly
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(calendarDays.length, (index) {
                 final isSelected = widget.selectedDayIndex == index;
-                final dayColor = isSelected
-                    ? const Color(0xFFFFB534)
-                    : (widget.isDark ? const Color(0xFF282522) : Colors.white);
-                final textColor = isSelected
-                    ? const Color(0xFF2C2A29)
-                    : widget.primaryText;
 
                 return GestureDetector(
                   onTap: () => widget.onDaySelect(index),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: dayColor,
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: const Color(0xFFFFB534).withOpacity(0.35),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              )
-                            ]
-                          : [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
-                                blurRadius: 5,
-                                offset: const Offset(0, 2),
-                              )
-                            ],
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          calendarDays[index]["day"]!,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: isSelected ? const Color(0xFF2C2A29).withOpacity(0.7) : widget.secondaryText,
+                  child: Column(
+                    children: [
+                      Text(
+                        calendarDays[index]["day"]!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isSelected ? const Color(0xFF2C2A29) : const Color(0xFF9E9992),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFFFBB540)
+                              : (widget.isDark ? const Color(0xFF282522) : Colors.white),
+                          shape: BoxShape.circle,
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: const Color(0xFFFBB540).withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  )
+                                ]
+                              : [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.03),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  )
+                                ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            calendarDays[index]["num"]!,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF2C2A29),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          calendarDays[index]["num"]!,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               }),
             ),
           ),
           const SizedBox(height: 24),
+          // My Journal Section Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Row(
@@ -138,7 +138,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: const Text(
                     "See all",
                     style: TextStyle(
-                      color: Color(0xFFFFB534),
+                      color: Color(0xFF7C7975),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -146,6 +146,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
+          // Beautiful Swiping Horizontal Journal Cards with Peek
           SizedBox(
             height: 220,
             child: PageView(
@@ -153,6 +154,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               children: [
+                // Card 1: Morning Let's Start Your Day
                 GestureDetector(
                   onTap: widget.onOpenJournal,
                   child: Padding(
@@ -181,22 +183,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.6),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Text(
-                                      "Morning Journal",
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF785213),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
                                   const Text(
                                     "Let’s start your day",
                                     style: TextStyle(
@@ -208,7 +194,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   const SizedBox(height: 6),
                                   const Text(
-                                    "Begin with a mindful morning\nreflections and intentions.",
+                                    "Begin with a mindful morning\nreflections.",
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: Color(0xFF63564A),
@@ -224,11 +210,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 ),
+                // Card 2: Evening cozy card with Rotated text to act as vertical Peek strip
                 Padding(
                   padding: const EdgeInsets.only(right: 14.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD6CEE5),
+                      color: widget.isDark ? const Color(0xFF2E2A26) : const Color(0xFFD6CEBF),
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
@@ -245,8 +232,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const Positioned.fill(
                             child: CozyMoonIllustration(),
                           ),
+                          // Rotate the word "Evening" vertically on the left side of the card so it acts as a visual tab
+                          Positioned(
+                            left: 12,
+                            top: 0,
+                            bottom: 0,
+                            child: Center(
+                              child: RotatedBox(
+                                quarterTurns: 3,
+                                child: Text(
+                                  "Evening",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: widget.isDark ? Colors.white60 : const Color(0xFF4C473E),
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                           Padding(
-                            padding: const EdgeInsets.all(20.0),
+                            padding: const EdgeInsets.only(left: 45.0, top: 20, right: 20, bottom: 20),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -296,6 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(height: 24),
+          // Quick Journal section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Row(
@@ -314,7 +322,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: const Text(
                     "See all",
                     style: TextStyle(
-                      color: Color(0xFFFFB534),
+                      color: Color(0xFF7C7975),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -322,6 +330,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
+          // Quick Journal horizontal cards
           SizedBox(
             height: 155,
             child: ListView(
@@ -343,7 +352,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(width: 14),
                 _buildQuickJournalCard(
                   title: "Set Intentions 😐",
-                  desc: "How do you want to feel today?",
+                  desc: "How do you want to feel?",
                   cardColor: widget.isDark ? const Color(0xFF2C2A44) : const Color(0xFFE8E5FF),
                   tagText1: "Today",
                   tagText2: "Family",

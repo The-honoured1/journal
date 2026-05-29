@@ -45,17 +45,18 @@ class ReflectionScreen extends StatelessWidget {
         Positioned.fill(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(left: 20, right: 20, top: 70, bottom: 100),
+            padding: const EdgeInsets.only(left: 20, right: 20, top: 70, bottom: 110),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Soft reddish-brown date at top matching reference image exactly
                 Center(
                   child: Text(
                     entry["date"] ?? "March 22, 2025",
                     style: const TextStyle(
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFFFB534),
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF8E5A3C), // Calm reddish-brown
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -73,6 +74,7 @@ class ReflectionScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
+                // Category selector pills
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: ["Personal", "Calm", "Motivation"].map((category) {
@@ -84,13 +86,13 @@ class ReflectionScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
                           color: isActive
-                              ? const Color(0xFFFFB534)
+                              ? const Color(0xFFFBB540)
                               : (isDark ? const Color(0xFF282522) : Colors.white),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isActive
-                                ? const Color(0xFFFFB534)
-                                : primaryText.withOpacity(0.08),
+                                ? const Color(0xFFFBB540)
+                                : Colors.black.withOpacity(0.08),
                           ),
                         ),
                         child: Text(
@@ -108,6 +110,7 @@ class ReflectionScreen extends StatelessWidget {
                   }).toList(),
                 ),
                 const SizedBox(height: 24),
+                // Soft portrait hero image
                 ClipRRect(
                   borderRadius: BorderRadius.circular(28),
                   child: Container(
@@ -137,6 +140,7 @@ class ReflectionScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
+                // Audio waveform container
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
@@ -158,7 +162,7 @@ class ReflectionScreen extends StatelessWidget {
                           width: 44,
                           height: 44,
                           decoration: const BoxDecoration(
-                            color: Color(0xFFFFB534),
+                            color: Color(0xFFFBB540),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -192,6 +196,7 @@ class ReflectionScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
+                // Scrollable text area in serif
                 Text(
                   entry["text"] ?? "No text entered.",
                   style: TextStyle(
@@ -202,15 +207,7 @@ class ReflectionScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text(
-                  "Tiny Graces",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: primaryText,
-                  ),
-                ),
-                const SizedBox(height: 12),
+                // Bullet entries
                 ...List.generate(
                   (entry["bullets"] as List).length,
                   (index) => Padding(
@@ -224,7 +221,7 @@ class ReflectionScreen extends StatelessWidget {
                             width: 6,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: Color(0xFFFFB534),
+                              color: Color(0xFFFBB540),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -248,6 +245,7 @@ class ReflectionScreen extends StatelessWidget {
             ),
           ),
         ),
+        // Floating Top navigation bar
         Positioned(
           top: 0,
           left: 0,
@@ -309,55 +307,104 @@ class ReflectionScreen extends StatelessWidget {
             ),
           ),
         ),
+        // Premium capsule action bar with circular bordered buttons matching image exactly
         Positioned(
           bottom: 24,
-          left: 40,
-          right: 40,
-          child: Container(
-            height: 56,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, 6),
-                )
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                IconButton(
-                  icon: const Icon(CupertinoIcons.pencil, color: Color(0xFFFFB534)),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Editing reflection..."),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
+          left: 60,
+          right: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              // Edit button
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Editing reflection..."),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black.withOpacity(0.06)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.pencil,
+                    color: Color(0xFF2C2A29),
+                    size: 18,
+                  ),
                 ),
-                IconButton(
-                  icon: Icon(CupertinoIcons.share, color: secondaryText),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Preparing share layout..."),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
+              ),
+              // Share button
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Preparing share layout..."),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black.withOpacity(0.06)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.share,
+                    color: Color(0xFF2C2A29),
+                    size: 18,
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(CupertinoIcons.trash, color: Color(0xFF78473B)),
-                  onPressed: onDelete,
+              ),
+              // Delete button
+              GestureDetector(
+                onTap: onDelete,
+                child: Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black.withOpacity(0.06)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.trash,
+                    color: Color(0xFF784136),
+                    size: 18,
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
