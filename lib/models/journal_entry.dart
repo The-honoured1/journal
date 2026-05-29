@@ -29,7 +29,7 @@ class JournalEntry {
     required this.anxiousVal,
     this.voiceNotePath,
     this.voiceDurationSec = 0,
-    required this.bullets,
+    this.bullets = const [],
     required this.categories,
     this.imageUrls = const [],
     this.fileNames = const [],

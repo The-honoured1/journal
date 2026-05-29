@@ -1,4 +1,4 @@
-// Updated main.dart with Riverpod integration
+// Updated main.dart with Riverpod integration and Clean Nav Flow
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,11 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/storage_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/journal_provider.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
+import 'models/journal_entry.dart';
 import 'screens/dashboard_screen.dart';
-import 'screens/explore_screen.dart';
-import 'screens/analytics_screen.dart';
+import 'screens/author_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/reflection_screen.dart';
 import 'screens/welcome_screen.dart';
@@ -53,7 +54,7 @@ class MyApp extends ConsumerWidget {
   }
 }
 
-class JournalAppHome extends StatefulWidget {
+class JournalAppHome extends ConsumerStatefulWidget {
   final bool isDarkTheme;
   final VoidCallback onToggleTheme;
 
@@ -64,42 +65,20 @@ class JournalAppHome extends StatefulWidget {
   });
 
   @override
-  State<JournalAppHome> createState() => _JournalAppHomeState();
+  ConsumerState<JournalAppHome> createState() => _JournalAppHomeState();
 }
 
-class _JournalAppHomeState extends State<JournalAppHome> {
-  int currentTabIndex =
-      0; // 0: Home, 1: Explore, 2: Journey (Analytics), 3: Profile
-  int selectedDayIndex = 3; // Thursday (10)
+class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
+  int currentTabIndex = 0; // 0: Home, 1: Author, 2: Profile
+  DateTime selectedDate = DateTime.now();
   int activeScore = 420;
   bool isAudioPlaying = false;
-  int audioCurrentSeconds = 32;
-  double audioPlaybackProgress = 0.45;
+  int audioCurrentSeconds = 0;
+  double audioPlaybackProgress = 0.0;
   Timer? audioTimer;
 
   Set<String> selectedCategories = {"Personal", "Calm", "Motivation"};
-
-  List<Map<String, dynamic>> journalEntries = [
-    {
-      "title": "Morning Reflection",
-      "date": "March 22, 2025",
-      "text":
-          "I woke up to the soft light filtering through my window, and for the first time in a while, I didn’t rush to check my phone. Instead, I took a deep breath and stretched, feeling my body wake up slowly. The morning routine felt deliberate and peaceful.",
-      "bullets": [
-        "The warmth of my morning tea",
-        "A quiet moment to myself before the day starts",
-        "The kindness of a stranger who held the door open for me yesterday",
-      ],
-      "categories": ["Personal", "Calm", "Motivation"],
-    },
-  ];
-
-  double happyPercent = 0.48;
-  double sadPercent = 0.33;
-  double calmPercent = 0.27;
-  double anxiousPercent = 0.40;
-
-  Map<String, dynamic>? activeReflectionDetail;
+  JournalEntry? activeReflectionDetail;
 
   void toggleAudioPlayback() {
     setState(() {
@@ -117,36 +96,44 @@ class _JournalAppHomeState extends State<JournalAppHome> {
     });
   }
 
-  void selectDay(int index) {
-    setState(() {
-      selectedDayIndex = index;
-    });
-  }
-
-  void openReflection(Map<String, dynamic> entry) {
+  void openReflection(JournalEntry entry) {
     setState(() {
       activeReflectionDetail = entry;
+      isAudioPlaying = false;
+      audioCurrentSeconds = 0;
+      audioPlaybackProgress = 0.0;
+      audioTimer?.cancel();
     });
   }
 
   void closeReflection() {
     setState(() {
       activeReflectionDetail = null;
+      isAudioPlaying = false;
+      audioCurrentSeconds = 0;
+      audioPlaybackProgress = 0.0;
+      audioTimer?.cancel();
     });
   }
 
-  void deleteReflection(Map<String, dynamic> entry) {
-    setState(() {
-      journalEntries.remove(entry);
-      activeReflectionDetail = null;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Journal entry deleted"),
-          backgroundColor: Color(0xFF78473B),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    });
+  void deleteReflection(JournalEntry entry) {
+    ref.read(journalProvider.notifier).deleteEntry(entry.id);
+    closeReflection();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Journal entry deleted"),
+        backgroundColor: Color(0xFF78473B),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  String _formatDateString(DateTime dt) {
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}";
   }
 
   void createNewJournalEntry(
@@ -157,27 +144,37 @@ class _JournalAppHomeState extends State<JournalAppHome> {
     double sad,
     double calm,
     double anxious,
+    List<String> imageUrls,
+    List<String> fileNames,
+    String? voiceNotePath,
+    int voiceDurationSec,
   ) {
+    String mood = "Calm";
+    double maxVal = calm;
+    if (happy > maxVal) { mood = "Happy"; maxVal = happy; }
+    if (sad > maxVal) { mood = "Sad"; maxVal = sad; }
+    if (anxious > maxVal) { mood = "Anxious"; }
+
+    final newEntry = JournalEntry(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: title,
+      date: _formatDateString(selectedDate),
+      text: content,
+      mood: mood,
+      categories: [primaryCategory],
+      imageUrls: imageUrls,
+      fileNames: fileNames,
+      voiceNotePath: voiceNotePath,
+      voiceDurationSec: voiceDurationSec,
+      happyVal: happy,
+      sadVal: sad,
+      calmVal: calm,
+      anxiousVal: anxious,
+    );
+
+    ref.read(journalProvider.notifier).addEntry(newEntry);
+
     setState(() {
-      final newEntry = {
-        "title": title,
-        "date": "May 29, 2026",
-        "text": content,
-        "bullets": [
-          "Took a moment to log my state",
-          "Explored my emotional space today",
-          "Committed to mindfulness",
-        ],
-        "categories": [primaryCategory, "Calm"],
-      };
-      journalEntries.insert(0, newEntry);
-
-      activeScore += 15;
-      happyPercent = (happyPercent + happy) / 2;
-      sadPercent = (sadPercent + sad) / 2;
-      calmPercent = (calmPercent + calm) / 2;
-      anxiousPercent = (anxiousPercent + anxious) / 2;
-
       currentTabIndex = 0;
       activeReflectionDetail = null;
     });
@@ -191,17 +188,14 @@ class _JournalAppHomeState extends State<JournalAppHome> {
 
   @override
   Widget build(BuildContext context) {
+    final journalEntries = ref.watch(journalProvider);
+    final user = ref.watch(authProvider);
+    
     final isDark = widget.isDarkTheme;
-    final scaffoldBg = isDark
-        ? const Color(0xFF1C1A18)
-        : const Color(0xFFF5F2EB);
+    final scaffoldBg = isDark ? const Color(0xFF1C1A18) : const Color(0xFFF5F2EB);
     final cardBg = isDark ? const Color(0xFF282522) : Colors.white;
-    final primaryText = isDark
-        ? const Color(0xFFECE7E2)
-        : const Color(0xFF2C2A29);
-    final secondaryText = isDark
-        ? const Color(0xFF9E9992)
-        : const Color(0xFF7C7975);
+    final primaryText = isDark ? const Color(0xFFECE7E2) : const Color(0xFF2C2A29);
+    final secondaryText = isDark ? const Color(0xFF9E9992) : const Color(0xFF7C7975);
 
     if (activeReflectionDetail != null) {
       return Scaffold(
@@ -257,12 +251,10 @@ class _JournalAppHomeState extends State<JournalAppHome> {
                     children: [
                       Text(
                         currentTabIndex == 0
-                            ? "Hi, Jose Maria"
-                            : currentTabIndex == 2
-                            ? "My Journal"
+                            ? "Hi, ${user.name}"
                             : currentTabIndex == 1
-                            ? "Explore Solace"
-                            : "My Journey",
+                            ? "About Author"
+                            : "My Profile",
                         style: TextStyle(
                           fontSize: 24,
                           fontFamily: 'serif',
@@ -275,9 +267,14 @@ class _JournalAppHomeState extends State<JournalAppHome> {
                           "Ready for a peaceful day?",
                           style: TextStyle(fontSize: 14, color: secondaryText),
                         ),
+                      if (currentTabIndex == 1)
+                        Text(
+                          "A message from the creator.",
+                          style: TextStyle(fontSize: 14, color: secondaryText),
+                        ),
                       if (currentTabIndex == 2)
                         Text(
-                          "Celebrate what made you smile.",
+                          "Adjust your personal settings.",
                           style: TextStyle(fontSize: 14, color: secondaryText),
                         ),
                     ],
@@ -304,9 +301,9 @@ class _JournalAppHomeState extends State<JournalAppHome> {
                             color: const Color(0xFFFFB534),
                             width: 1.5,
                           ),
-                          image: const DecorationImage(
+                          image: DecorationImage(
                             image: NetworkImage(
-                              "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+                              user.profilePicUrl ?? "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=150&auto=format&fit=crop&q=80",
                             ),
                             fit: BoxFit.cover,
                           ),
@@ -326,32 +323,20 @@ class _JournalAppHomeState extends State<JournalAppHome> {
                     primaryText: primaryText,
                     secondaryText: secondaryText,
                     cardBg: cardBg,
-                    selectedDayIndex: selectedDayIndex,
-                    onDaySelect: selectDay,
-                    onOpenJournal: () {
-                      if (journalEntries.isNotEmpty) {
-                        openReflection(journalEntries.first);
-                      }
+                    selectedDate: selectedDate,
+                    onDateSelect: (date) {
+                      setState(() {
+                        selectedDate = date;
+                      });
                     },
+                    onOpenJournal: openReflection,
                     journalEntries: journalEntries,
                   ),
-                  ExploreScreen(
+                  AuthorScreen(
                     isDark: isDark,
                     primaryText: primaryText,
                     secondaryText: secondaryText,
                     cardBg: cardBg,
-                  ),
-                  AnalyticsScreen(
-                    isDark: isDark,
-                    primaryText: primaryText,
-                    secondaryText: secondaryText,
-                    cardBg: cardBg,
-                    activeScore: activeScore,
-                    happy: happyPercent,
-                    sad: sadPercent,
-                    calm: calmPercent,
-                    anxious: anxiousPercent,
-                    onCreateNew: () => _showAddJournalModal(context),
                   ),
                   ProfileScreen(
                     isDark: isDark,
@@ -359,7 +344,6 @@ class _JournalAppHomeState extends State<JournalAppHome> {
                     secondaryText: secondaryText,
                     cardBg: cardBg,
                     entryCount: journalEntries.length,
-                    activeScore: activeScore,
                   ),
                 ],
               ),
@@ -373,9 +357,7 @@ class _JournalAppHomeState extends State<JournalAppHome> {
 
   Widget _buildBottomNavBar(bool isDark, Color cardBg) {
     final activeColor = isDark ? Colors.white : const Color(0xFF2C2A29);
-    final inactiveColor = isDark
-        ? const Color(0xFF6C6864)
-        : const Color(0xFFB0AAA4);
+    final inactiveColor = isDark ? const Color(0xFF6C6864) : const Color(0xFFB0AAA4);
 
     return Container(
       padding: const EdgeInsets.only(bottom: 24, top: 12, left: 16, right: 16),
@@ -398,32 +380,19 @@ class _JournalAppHomeState extends State<JournalAppHome> {
         children: [
           _buildNavItem(
             0,
-            currentTabIndex == 0
-                ? CupertinoIcons.house_fill
-                : CupertinoIcons.house,
+            currentTabIndex == 0 ? CupertinoIcons.house_fill : CupertinoIcons.house,
             "Home",
             activeColor,
             inactiveColor,
           ),
-          _buildNavItem(
-            1,
-            currentTabIndex == 1
-                ? CupertinoIcons.compass_fill
-                : CupertinoIcons.compass,
-            "Explore",
-            activeColor,
-            inactiveColor,
-          ),
-          // Center Floating + Button
+          
           GestureDetector(
             onTap: () => _showAddJournalModal(context),
             child: Container(
               width: 50,
               height: 50,
               decoration: const BoxDecoration(
-                color: Color(
-                  0xFFFBB540,
-                ), // Bright yellow-orange matching reference
+                color: Color(0xFFFBB540),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -440,20 +409,18 @@ class _JournalAppHomeState extends State<JournalAppHome> {
               ),
             ),
           ),
+          
           _buildNavItem(
-            2,
-            currentTabIndex == 2
-                ? CupertinoIcons.doc_text_fill
-                : CupertinoIcons.doc_text,
-            "Journey",
+            1,
+            currentTabIndex == 1 ? CupertinoIcons.person_crop_square_fill : CupertinoIcons.person_crop_square,
+            "Author",
             activeColor,
             inactiveColor,
           ),
+          
           _buildNavItem(
-            3,
-            currentTabIndex == 3
-                ? CupertinoIcons.person_fill
-                : CupertinoIcons.person,
+            2,
+            currentTabIndex == 2 ? CupertinoIcons.person_fill : CupertinoIcons.person,
             "Profile",
             activeColor,
             inactiveColor,

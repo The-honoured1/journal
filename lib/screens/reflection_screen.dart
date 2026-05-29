@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/journal_entry.dart';
 import '../widgets/audio_waveform.dart';
 
 class ReflectionScreen extends StatelessWidget {
-  final Map<String, dynamic> entry;
+  final JournalEntry entry;
   final bool isDark;
   final Color primaryText;
   final Color secondaryText;
@@ -41,22 +42,12 @@ class ReflectionScreen extends StatelessWidget {
     final seconds = (playbackSeconds % 60).toString().padLeft(2, '0');
     final scaffoldBg = isDark ? const Color(0xFF1C1A18) : const Color(0xFFF5F2EB);
 
-    final backgroundColor = isDark ? const Color(0xFF1C1A18) : const Color(0xFFF5F2EB);
+    final hasImages = entry.imageUrls.isNotEmpty;
+    final hasAudio = entry.voiceNotePath != null;
+    final hasFiles = entry.fileNames.isNotEmpty;
+
     return Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: backgroundColor,
-        elevation: 0,
-        title: Text(
-          'Reflection',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: primaryText,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      backgroundColor: scaffoldBg,
       body: Stack(
         children: [
           Positioned.fill(
@@ -66,24 +57,26 @@ class ReflectionScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Soft reddish-brown date at top matching reference image exactly
+                  // Date
                   Center(
                     child: Text(
-                      entry["date"] ?? "March 22, 2025",
+                      entry.date,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF8E5A3C), // Calm reddish-brown
+                        color: Color(0xFF8E5A3C),
                         letterSpacing: 0.5,
                       ),
                     ),
                   ),
                   const SizedBox(height: 6),
+                  
+                  // Title
                   Center(
                     child: Text(
-                      entry["title"] ?? "Morning Reflection",
-                      style: TextStyle(
-                        fontFamily: 'serif',
+                      entry.title,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: primaryText,
@@ -91,177 +84,176 @@ class ReflectionScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Category selector pills
+                  
+                  // Category pills
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: ["Personal", "Calm", "Motivation"].map((category) {
-                      final isActive = selectedCategories.contains(category);
-                      return GestureDetector(
-                        onTap: () => onCategoryToggle(category),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? const Color(0xFFFBB540)
-                                : (isDark ? const Color(0xFF282522) : Colors.white),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isActive
-                                  ? const Color(0xFFFBB540)
-                                  : Colors.black.withOpacity(0.08),
-                            ),
+                    children: entry.categories.map((category) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFB534).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFFFFB534).withOpacity(0.3),
                           ),
-                          child: Text(
-                            category,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: isActive
-                                  ? const Color(0xFF2C2A29)
-                                  : secondaryText,
-                            ),
+                        ),
+                        child: Text(
+                          category,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFFFFB534),
                           ),
                         ),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 24),
-                  // Soft portrait hero image
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(28),
-                    child: Container(
-                      height: 220,
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFECE7E2),
-                        image: DecorationImage(
-                          image: NetworkImage(
-                            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&auto=format&fit=crop&q=80",
-                          ),
-                          fit: BoxFit.cover,
+                  
+                  // Render Images if attached, else default ambient placeholder
+                  if (hasImages)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: SizedBox(
+                        height: 220,
+                        child: PageView.builder(
+                          itemCount: entry.imageUrls.length,
+                          itemBuilder: (context, idx) {
+                            return Image.network(
+                              entry.imageUrls[idx],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            );
+                          },
                         ),
                       ),
+                    )
+                  else
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
                       child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.2),
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
+                        height: 180,
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFECE7E2),
+                          image: DecorationImage(
+                            image: NetworkImage(
+                              "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&auto=format&fit=crop&q=80",
+                            ),
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
                     ),
-                  ),
+                  
                   const SizedBox(height: 20),
-                  // Audio waveform container
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        )
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: onPlayToggle,
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFBB540),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
-                              color: const Color(0xFF2C2A29),
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: SizedBox(
-                            height: 36,
-                            child: AudioWaveform(
-                              progress: playbackProgress,
-                              isPlaying: isPlaying,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Text(
-                          "$minutes:$seconds",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: 'monospace',
-                            fontWeight: FontWeight.bold,
-                            color: primaryText,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Scrollable text area in serif
-                  Text(
-                    entry["text"] ?? "No text entered.",
-                    style: TextStyle(
-                      fontFamily: 'serif',
-                      fontSize: 16,
-                      height: 1.6,
-                      color: primaryText.withOpacity(0.85),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Bullet entries
-                  ...List.generate(
-                    (entry["bullets"] as List).length,
-                    (index) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
+                  
+                  // Audio player if voice note exists
+                  if (hasAudio) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.02),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
+                      ),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 5.0),
+                          GestureDetector(
+                            onTap: onPlayToggle,
                             child: Container(
-                              width: 6,
-                              height: 6,
+                              width: 44,
+                              height: 44,
                               decoration: const BoxDecoration(
-                                color: Color(0xFFFBB540),
+                                color: Color(0xFFFFB534),
                                 shape: BoxShape.circle,
                               ),
+                              child: Icon(
+                                isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
+                                color: const Color(0xFF2C2A29),
+                                size: 18,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 14),
                           Expanded(
-                            child: Text(
-                              entry["bullets"][index],
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: secondaryText,
-                                height: 1.3,
+                            child: SizedBox(
+                              height: 36,
+                              child: AudioWaveform(
+                                progress: playbackProgress,
+                                isPlaying: isPlaying,
                               ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Text(
+                            "$minutes:$seconds",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                              color: primaryText,
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 24),
+                  ],
+                  
+                  // Reflection Text
+                  Text(
+                    entry.text,
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      height: 1.6,
+                      color: primaryText.withOpacity(0.85),
+                    ),
                   ),
+                  
+                  // File attachments list
+                  if (hasFiles) ...[
+                    const SizedBox(height: 30),
+                    Text(
+                      "Attached Files",
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold, color: primaryText),
+                    ),
+                    const SizedBox(height: 10),
+                    ...entry.fileNames.map((fileName) => Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(CupertinoIcons.doc_text, color: primaryText, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              fileName,
+                              style: TextStyle(fontSize: 13, color: primaryText),
+                            ),
+                          ),
+                          Icon(CupertinoIcons.cloud_download, color: secondaryText, size: 18),
+                        ],
+                      ),
+                    )),
+                  ],
                 ],
               ),
             ),
           ),
+          
           // Floating Top navigation bar
           Positioned(
             top: 0,
@@ -324,7 +316,8 @@ class ReflectionScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Premium capsule action bar with circular bordered buttons matching image exactly
+          
+          // Premium action bar
           Positioned(
             bottom: 24,
             left: 60,
@@ -336,8 +329,8 @@ class ReflectionScreen extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text("Editing reflection..."),
+                      const SnackBar(
+                        content: Text("Editing reflection..."),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -368,8 +361,8 @@ class ReflectionScreen extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text("Preparing share layout..."),
+                      const SnackBar(
+                        content: Text("Preparing share layout..."),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
