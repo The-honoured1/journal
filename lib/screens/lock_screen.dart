@@ -72,12 +72,11 @@ class _LockScreenState extends ConsumerState<LockScreen>
       });
 
       final bool didAuthenticate = await _localAuth.authenticate(
-        localizedReason: 'Authenticate to unlock your journal',
-        options: const AuthenticationOptions(
+          localizedReason: 'Authenticate to unlock your journal',
           biometricOnly: true,
-          stickyAuth: true,
-        ),
-      );
+          // persistAcrossBackgrounding replaces stickyAuth in newer versions
+          persistAcrossBackgrounding: true,
+        );
 
       if (!mounted) return;
 
@@ -289,11 +288,11 @@ class _LockScreenState extends ConsumerState<LockScreen>
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Column(
                 children: [
-                  _keyRow(['1','2','3'], keyBg, keyBorder, priText),
+                  _keyRow(['1','2','3'], keyBg, keyBorder, priText, secText),
                   const SizedBox(height: 14),
-                  _keyRow(['4','5','6'], keyBg, keyBorder, priText),
+                  _keyRow(['4','5','6'], keyBg, keyBorder, priText, secText),
                   const SizedBox(height: 14),
-                  _keyRow(['7','8','9'], keyBg, keyBorder, priText),
+                  _keyRow(['7','8','9'], keyBg, keyBorder, priText, secText),
                   const SizedBox(height: 14),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -301,8 +300,8 @@ class _LockScreenState extends ConsumerState<LockScreen>
                       _biometricType.isNotEmpty
                           ? _buildBioKey(keyBg, keyBorder, accent)
                           : const SizedBox(width: 72, height: 72),
-                      _buildKey('0', keyBg, keyBorder, priText),
-                      _buildKey('back', keyBg, keyBorder, priText),
+                      _buildKey('0', keyBg, keyBorder, priText, secText),
+                      _buildKey('back', keyBg, keyBorder, priText, secText),
                     ],
                   ),
                 ],
@@ -316,12 +315,12 @@ class _LockScreenState extends ConsumerState<LockScreen>
     );
   }
 
-  Row _keyRow(List<String> keys, Color bg, Color border, Color text) => Row(
+  Row _keyRow(List<String> keys, Color bg, Color border, Color text, Color secText) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: keys.map((k) => _buildKey(k, bg, border, text)).toList(),
+        children: keys.map((k) => _buildKey(k, bg, border, text, secText)).toList(),
       );
 
-  Widget _buildKey(String key, Color bg, Color border, Color text) {
+  Widget _buildKey(String key, Color bg, Color border, Color text, Color secText) {
     final isBack = key == 'back';
     return Container(
       width: 72, height: 72,
@@ -337,7 +336,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
           customBorder: const CircleBorder(),
           child: Center(
             child: isBack
-                ? Icon(CupertinoIcons.delete_left, color: text, size: 22)
+                ? Icon(CupertinoIcons.delete_left, color: secText.withOpacity(0.8), size: 22)
                 : Text(key, style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w500, color: text)),
           ),
         ),

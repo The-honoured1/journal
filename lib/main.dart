@@ -457,7 +457,7 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                     onOpenJournal: openReflection,
                     journalEntries: journalEntries,
                     todayMood: todayMood,
-                    onCheckIn: _showDailyCheckin,
+                    onCheckIn: _showDailyCheckinModal,
                   ),
                   JourneyScreen(
                     isDark: isDark,

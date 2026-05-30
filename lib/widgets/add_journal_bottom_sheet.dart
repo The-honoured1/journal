@@ -217,7 +217,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "New Reflection",
+                  widget.existingEntry != null ? "Edit Entry" : "New Journal Entry",
                   style: GoogleFonts.outfit(
                     fontSize: 24, fontWeight: FontWeight.bold, color: primaryText,
                   ),

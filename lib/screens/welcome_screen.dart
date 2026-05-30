@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
@@ -314,7 +315,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                                                 ),
                                               ],
                                             ),
-                                            child: const Icon(
+                                            child: Icon(
                                               CupertinoIcons.photo_on_rectangle,
                                               size: 13,
                                               color: Colors.white,

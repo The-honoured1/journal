@@ -40,8 +40,9 @@ dependencies:
   flutter_animate: ^4.5.0
   fl_chart: ^0.66.0
   shared_preferences: ^2.2.2
-  url_launcher: ^6.2.6
-  image_picker: ^1.1.2
+  url_launcher: ^6.3.2
+  image_picker: ^1.2.2
+  image_picker_android: ^0.8.13+17
   local_auth: ^3.0.1
 
 dev_dependencies:
