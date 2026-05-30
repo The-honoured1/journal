@@ -178,14 +178,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 2.0),
       child: Text(
-        title,
+        title.toUpperCase(),
         style: GoogleFonts.outfit(
-          fontSize: 19,
-          fontWeight: FontWeight.bold,
-          color: widget.primaryText,
-          letterSpacing: 0.2,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: widget.secondaryText,
+          letterSpacing: 1.4,
         ),
       ),
     );
@@ -194,32 +194,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 32),
       decoration: BoxDecoration(
         color: widget.cardBg,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: widget.isDark ? const Color(0xFF2E2A4A) : const Color(0xFFE8DFD0),
+        ),
       ),
       child: Column(
         children: [
-          Icon(CupertinoIcons.square_pencil, size: 44, color: widget.secondaryText.withOpacity(0.4)),
-          const SizedBox(height: 16),
+          Icon(CupertinoIcons.square_pencil, size: 40, color: widget.secondaryText.withOpacity(0.35)),
+          const SizedBox(height: 20),
           Text(
-            "No reflections recorded for this day.",
+            "No reflections yet",
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
               color: widget.primaryText,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            "Tap + below to start writing in your diary.",
+            "Tap + below to start writing.",
             textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(
-              color: widget.secondaryText,
-              fontSize: 13,
-            ),
+            style: GoogleFonts.outfit(color: widget.secondaryText, fontSize: 13),
           ),
         ],
       ),
@@ -234,17 +234,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final cells = _getDaysInMonth(_focusedMonth);
     
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: widget.cardBg,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: widget.isDark ? const Color(0xFF2E2A4A) : const Color(0xFFE8DFD0),
+        ),
       ),
       child: Column(
         children: [
@@ -475,17 +471,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onTap: () => widget.onOpenJournal(entry),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
           color: widget.cardBg,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.01),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: widget.isDark ? const Color(0xFF2E2A4A) : const Color(0xFFE8DFD0),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

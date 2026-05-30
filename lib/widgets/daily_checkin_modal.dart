@@ -34,10 +34,10 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
   double anxiousVal = 0.1;
 
   final Map<String, Color> _emotionColors = {
-    'happy': const Color(0xFFD4A373), // Sunset Amber Gold
-    'sad': const Color(0xFF8E9AAF), // Muted Blue Gray
-    'calm': const Color(0xFF70A288), // Serene Forest Green
-    'anxious': const Color(0xFFC5A3C1), // Serene Soft Lavender
+    'happy': const Color(0xFFF0A057),   // Warm amber
+    'sad':   const Color(0xFF7B8FD4),   // Soft indigo blue
+    'calm':  const Color(0xFF9B7FE8),   // Violet
+    'anxious': const Color(0xFFE07B8F), // Dusty rose
   };
 
   @override
@@ -53,11 +53,13 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
 
   @override
   Widget build(BuildContext context) {
-    final bg = widget.isDark ? const Color(0xFF0C100D) : const Color(0xFFF9F7F3);
-    final cardBg = widget.isDark ? const Color(0xFF181F1B) : Colors.white;
-    final primaryText = widget.isDark ? const Color(0xFFECEFEA) : const Color(0xFF1A1F1C);
-    final secondaryText = widget.isDark ? const Color(0xFF8FA397) : const Color(0xFF5A625D);
-    final accent = widget.isDark ? const Color(0xFF6A9978) : const Color(0xFF2C5E43);
+    final bg          = widget.isDark ? const Color(0xFF0E0C1A) : const Color(0xFFF5F0E8);
+    final cardBg      = widget.isDark ? const Color(0xFF1E1A35) : const Color(0xFFFFFDF8);
+    final border      = widget.isDark ? const Color(0xFF2E2A4A) : const Color(0xFFE8DFD0);
+    final primaryText = widget.isDark ? const Color(0xFFEDE8FF) : const Color(0xFF1A1628);
+    final secondaryText = widget.isDark ? const Color(0xFF8880A8) : const Color(0xFF6B6282);
+    final accent      = widget.isDark ? const Color(0xFF9B7FE8) : const Color(0xFF3D2B8E);
+    final amber       = widget.isDark ? const Color(0xFFF0A057) : const Color(0xFFE07B3C);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -65,16 +67,17 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 36),
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               color: bg,
               borderRadius: BorderRadius.circular(36),
+              border: Border.all(color: border),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
+                  color: Colors.black.withOpacity(0.35),
+                  blurRadius: 40,
+                  offset: const Offset(0, 14),
                 ),
               ],
             ),
@@ -107,10 +110,10 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
 
                 // Greeting & Title
                 Text(
-                  _isDaytime() ? "Rise & Shine" : "Cozy Evening",
+                  _isDaytime() ? "MORNING CHECK-IN" : "EVENING CHECK-IN",
                   style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                     color: accent,
                     letterSpacing: 2.0,
                   ),
@@ -139,17 +142,11 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
 
                 // Emotions Panel
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                   decoration: BoxDecoration(
                     color: cardBg,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.01),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: border),
                   ),
                   child: Column(
                     children: [
@@ -157,7 +154,7 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
                         setState(() => happyVal = val);
                       }),
                       const Divider(height: 28),
-                      _buildEmotionSliderRow("Sad", CupertinoIcons.frown, sadVal, _emotionColors['sad']!, (val) {
+                      _buildEmotionSliderRow("Sad", CupertinoIcons.cloud_drizzle, sadVal, _emotionColors['sad']!, (val) {
                         setState(() => sadVal = val);
                       }),
                       const Divider(height: 28),
@@ -199,14 +196,14 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
                 // Submit Button
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 58,
                   child: ElevatedButton(
                     onPressed: () {
                       widget.onComplete(happyVal, sadVal, calmVal, anxiousVal, _feelingsController.text);
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: accent,
+                      backgroundColor: amber,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -238,7 +235,7 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
     Color color,
     ValueChanged<double> onChanged,
   ) {
-    final primaryText = widget.isDark ? const Color(0xFFECEFEA) : const Color(0xFF1A1F1C);
+    final primaryText = widget.isDark ? const Color(0xFFEDE8FF) : const Color(0xFF1A1628);
     final pct = (value * 100).toInt();
 
     return Row(

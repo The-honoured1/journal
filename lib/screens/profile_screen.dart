@@ -365,9 +365,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _buildLinkButton(
               icon: CupertinoIcons.paperplane_fill,
               label: "Telegram",
-              sublabel: "@Th3_honoured1nd",
+              sublabel: "@Th3_honoured1",
               color: const Color(0xFF4BAEE8),
-              onTap: () => _launchUrl("https://t.me/Th3_honoured1nd"),
+              onTap: () => _launchUrl("https://t.me/Th3_honoured1"),
             ),
             const SizedBox(height: 12),
             _buildLinkButton(
