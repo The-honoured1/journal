@@ -157,7 +157,7 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
                         setState(() => happyVal = val);
                       }),
                       const Divider(height: 28),
-                      _buildEmotionSliderRow("Sad", CupertinoIcons.sad_face, sadVal, _emotionColors['sad']!, (val) {
+                      _buildEmotionSliderRow("Sad", CupertinoIcons.frown, sadVal, _emotionColors['sad']!, (val) {
                         setState(() => sadVal = val);
                       }),
                       const Divider(height: 28),

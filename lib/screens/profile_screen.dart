@@ -627,7 +627,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
             // Telegram
             _buildLinkButton(
-              icon: CupertinoIcons.paperplane_fill,
+              icon: CupertinoIcons.paperplane,
               label: "Telegram",
               sublabel: "@Th3_honoured1nd",
               color: const Color(0xFF0088CC),
@@ -637,7 +637,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
             // Email
             _buildLinkButton(
-              icon: CupertinoIcons.mail_fill,
+              icon: CupertinoIcons.mail,
               label: "Email",
               sublabel: "christian4onos@gmail.com",
               color: const Color(0xFFD44638),
@@ -648,7 +648,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
             // GitHub
             _buildLinkButton(
-              icon: CupertinoIcons.square_arrow_up_fill,
+              icon: CupertinoIcons.square_arrow_up,
               label: "GitHub",
               sublabel: "The-honoured1",
               color: widget.isDark
