@@ -17,8 +17,10 @@ import 'screens/reflection_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/lock_screen.dart';
 import 'screens/journey_screen.dart';
+import 'screens/emotion_screen.dart';
 import 'widgets/add_journal_bottom_sheet.dart';
 import 'widgets/daily_checkin_modal.dart';
+import 'widgets/avatar_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -368,7 +370,9 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                             ? "Hi, ${user.name}"
                             : currentTabIndex == 1
                                 ? "My Journey"
-                                : "My Profile",
+                                : currentTabIndex == 2
+                                    ? "My Emotion"
+                                    : "My Profile",
                         style: TextStyle(
                           fontSize: 26,
                           fontFamily: 'serif',
@@ -390,6 +394,11 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                           style: TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
                         ),
                       if (currentTabIndex == 2)
+                        Text(
+                          "Track and analyze your mind.",
+                          style: TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
+                        ),
+                      if (currentTabIndex == 3)
                         Text(
                           "Adjust your personal settings.",
                           style: TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
@@ -419,9 +428,7 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                             width: 2,
                           ),
                           image: DecorationImage(
-                            image: NetworkImage(
-                              user.profilePicUrl ?? "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=150&auto=format&fit=crop&q=80",
-                            ),
+                            image: getAvatarProvider(user.profilePicUrl),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -449,6 +456,8 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                     },
                     onOpenJournal: openReflection,
                     journalEntries: journalEntries,
+                    todayMood: todayMood,
+                    onCheckIn: _showDailyCheckin,
                   ),
                   JourneyScreen(
                     isDark: isDark,
@@ -457,6 +466,13 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                     cardBg: cardBg,
                     journalEntries: journalEntries,
                     onOpenJournal: openReflection,
+                  ),
+                  EmotionScreen(
+                    isDark: isDark,
+                    primaryText: primaryText,
+                    secondaryText: secondaryText,
+                    cardBg: cardBg,
+                    journalEntries: journalEntries,
                   ),
                   ProfileScreen(
                     isDark: isDark,
@@ -508,49 +524,23 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
 
           _buildNavItem(
             1,
-            currentTabIndex == 1
-                ? CupertinoIcons.map_fill
-                : CupertinoIcons.map,
+            currentTabIndex == 1 ? CupertinoIcons.map_fill : CupertinoIcons.map,
             "Journey",
             activeColor,
             inactiveColor,
           ),
 
-          GestureDetector(
-            onTap: () => _showAddJournalModal(context),
-            child: Container(
-              width: 58,
-              height: 58,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDark
-                      ? [const Color(0xFF9B7FE8), const Color(0xFF6D4FC2)]
-                      : [const Color(0xFF5A3FBF), const Color(0xFF3D2B8E)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark
-                        ? const Color(0xFF9B7FE8).withOpacity(0.35)
-                        : const Color(0xFF3D2B8E).withOpacity(0.35),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                CupertinoIcons.add,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
+          _buildNavItem(
+            2,
+            currentTabIndex == 2 ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+            "Emotion",
+            activeColor,
+            inactiveColor,
           ),
 
           _buildNavItem(
-            2,
-            currentTabIndex == 2 ? CupertinoIcons.person_fill : CupertinoIcons.person,
+            3,
+            currentTabIndex == 3 ? CupertinoIcons.person_fill : CupertinoIcons.person,
             "Profile",
             activeColor,
             inactiveColor,

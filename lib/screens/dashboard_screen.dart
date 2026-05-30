@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/journal_entry.dart';
+import '../widgets/avatar_helper.dart';
 
 class DashboardScreen extends StatefulWidget {
   final bool isDark;
@@ -555,7 +556,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
           image: DecorationImage(
-            image: NetworkImage(bgImg),
+            image: getAvatarProvider(bgImg),
             fit: BoxFit.cover,
           ),
           boxShadow: [
@@ -713,7 +714,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       image: DecorationImage(
-                        image: NetworkImage(entry.imageUrls.first),
+                        image: getAvatarProvider(entry.imageUrls.first),
                         fit: BoxFit.cover,
                       ),
                     ),

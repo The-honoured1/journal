@@ -78,4 +78,40 @@ class JournalEntry {
   String toJson() => json.encode(toMap());
 
   factory JournalEntry.fromJson(String source) => JournalEntry.fromMap(json.decode(source));
+
+  JournalEntry copyWith({
+    String? id,
+    String? title,
+    String? text,
+    String? date,
+    String? mood,
+    double? happyVal,
+    double? sadVal,
+    double? calmVal,
+    double? anxiousVal,
+    String? voiceNotePath,
+    int? voiceDurationSec,
+    List<String>? bullets,
+    List<String>? categories,
+    List<String>? imageUrls,
+    List<String>? fileNames,
+  }) {
+    return JournalEntry(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      text: text ?? this.text,
+      date: date ?? this.date,
+      mood: mood ?? this.mood,
+      happyVal: happyVal ?? this.happyVal,
+      sadVal: sadVal ?? this.sadVal,
+      calmVal: calmVal ?? this.calmVal,
+      anxiousVal: anxiousVal ?? this.anxiousVal,
+      voiceNotePath: voiceNotePath ?? this.voiceNotePath,
+      voiceDurationSec: voiceDurationSec ?? this.voiceDurationSec,
+      bullets: bullets ?? this.bullets,
+      categories: categories ?? this.categories,
+      imageUrls: imageUrls ?? this.imageUrls,
+      fileNames: fileNames ?? this.fileNames,
+    );
+  }
 }

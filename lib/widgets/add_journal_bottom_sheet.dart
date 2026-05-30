@@ -6,9 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/journal_entry.dart';
+import 'avatar_helper.dart';
 
 class AddJournalBottomSheet extends StatefulWidget {
   final bool isDark;
+  final JournalEntry? existingEntry;
   final Function(
     String title,
     String content,
@@ -27,6 +30,7 @@ class AddJournalBottomSheet extends StatefulWidget {
     super.key,
     required this.isDark,
     required this.onSave,
+    this.existingEntry,
   });
 
   @override
@@ -65,7 +69,21 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
   @override
   void initState() {
     super.initState();
-    _loadDailyEmotions();
+    if (widget.existingEntry != null) {
+      final e = widget.existingEntry!;
+      _titleController.text = e.title;
+      _textController.text = e.text;
+      selectedCategory = e.categories.isNotEmpty ? e.categories.first : "Personal";
+      happyVal = e.happyVal;
+      sadVal = e.sadVal;
+      calmVal = e.calmVal;
+      anxiousVal = e.anxiousVal;
+      pickedImages = e.imageUrls.map((path) => XFile(path)).toList();
+      recordedVoicePath = e.voiceNotePath;
+      recordedVoiceDuration = e.voiceDurationSec;
+    } else {
+      _loadDailyEmotions();
+    }
   }
 
   void _loadDailyEmotions() async {
@@ -371,7 +389,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             image: DecorationImage(
-                              image: FileImage(File(pickedImages[idx].path)),
+                              image: getAvatarProvider(pickedImages[idx].path),
                               fit: BoxFit.cover,
                             ),
                           ),
