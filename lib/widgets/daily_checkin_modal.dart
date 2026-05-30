@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'sun_illustration.dart';
-import 'cozy_moon_illustration.dart';
+import 'dart:ui';
 
 class DailyCheckinModal extends StatefulWidget {
   final bool isDark;
@@ -25,202 +23,132 @@ class DailyCheckinModal extends StatefulWidget {
   State<DailyCheckinModal> createState() => _DailyCheckinModalState();
 }
 
-class _DailyCheckinModalState extends State<DailyCheckinModal> {
-  final TextEditingController _feelingsController = TextEditingController();
+class _DailyCheckinModalState extends State<DailyCheckinModal>
+    with SingleTickerProviderStateMixin {
+  final TextEditingController _noteController = TextEditingController();
+  int _step = 0; // 0 = pick emotions, 1 = write note
+  late AnimationController _fadeCtrl;
+  late Animation<double> _fadeAnim;
 
-  double happyVal = 0.5;
-  double sadVal = 0.1;
-  double calmVal = 0.5;
-  double anxiousVal = 0.1;
+  // All emotion words grouped by valence
+  static const _emotions = [
+    // Negative
+    'annoyed', 'anxious', 'fearful',
+    'depressed', 'sad', 'lonely',
+    'guilty', 'shame', 'angry', 'tired',
+    'bored', 'overwhelmed', 'unmotivated',
+    // Neutral / mixed
+    'calm', 'relaxed',
+    // Positive
+    'productive', 'content',
+    'grateful', 'confident', 'proud',
+    'love', 'happy', 'excited',
+  ];
 
-  final Map<String, Color> _emotionColors = {
-    'happy': const Color(0xFFF0A057),   // Warm amber
-    'sad':   const Color(0xFF7B8FD4),   // Soft indigo blue
-    'calm':  const Color(0xFF9B7FE8),   // Violet
-    'anxious': const Color(0xFFE07B8F), // Dusty rose
-  };
+  final Set<String> _selected = {};
+
+  // Map emotion → mood scores
+  double get _happy {
+    const positives = {'happy', 'excited', 'love', 'proud', 'confident', 'grateful', 'content', 'productive'};
+    final count = _selected.intersection(positives).length;
+    return (_selected.isEmpty ? 0.5 : count / _selected.length).clamp(0.0, 1.0);
+  }
+
+  double get _sad {
+    const negatives = {'sad', 'depressed', 'lonely', 'guilty', 'shame', 'bored'};
+    final count = _selected.intersection(negatives).length;
+    return (_selected.isEmpty ? 0.1 : count / _selected.length).clamp(0.0, 1.0);
+  }
+
+  double get _calm {
+    const calmWords = {'calm', 'relaxed', 'content', 'grateful'};
+    final count = _selected.intersection(calmWords).length;
+    return (_selected.isEmpty ? 0.5 : count / _selected.length).clamp(0.0, 1.0);
+  }
+
+  double get _anxious {
+    const anxiousWords = {'anxious', 'fearful', 'angry', 'overwhelmed', 'annoyed', 'tired', 'unmotivated'};
+    final count = _selected.intersection(anxiousWords).length;
+    return (_selected.isEmpty ? 0.1 : count / _selected.length).clamp(0.0, 1.0);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 320));
+    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
+    _fadeCtrl.forward();
+  }
 
   @override
   void dispose() {
-    _feelingsController.dispose();
+    _fadeCtrl.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
-  bool _isDaytime() {
-    final hour = DateTime.now().hour;
-    return hour >= 6 && hour < 18;
+  void _goNext() async {
+    await _fadeCtrl.reverse();
+    setState(() => _step = 1);
+    _fadeCtrl.forward();
+  }
+
+  void _goBack() async {
+    await _fadeCtrl.reverse();
+    setState(() => _step = 0);
+    _fadeCtrl.forward();
+  }
+
+  void _submit() {
+    widget.onComplete(_happy, _sad, _calm, _anxious, _noteController.text);
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final bg          = widget.isDark ? const Color(0xFF0E0C1A) : const Color(0xFFF5F0E8);
-    final cardBg      = widget.isDark ? const Color(0xFF1E1A35) : const Color(0xFFFFFDF8);
-    final border      = widget.isDark ? const Color(0xFF2E2A4A) : const Color(0xFFE8DFD0);
-    final primaryText = widget.isDark ? const Color(0xFFEDE8FF) : const Color(0xFF1A1628);
-    final secondaryText = widget.isDark ? const Color(0xFF8880A8) : const Color(0xFF6B6282);
-    final accent      = widget.isDark ? const Color(0xFF9B7FE8) : const Color(0xFF3D2B8E);
-    final amber       = widget.isDark ? const Color(0xFFF0A057) : const Color(0xFFE07B3C);
+    final isDark = widget.isDark;
+    final bg = isDark ? const Color(0xFF0E0C1A) : const Color(0xFFFFFDF8);
+    final primaryText = isDark ? const Color(0xFFEDE8FF) : const Color(0xFF1A1628);
+    final secondaryText = isDark ? const Color(0xFF8880A8) : const Color(0xFF6B6282);
+    final accent = isDark ? const Color(0xFF9B7FE8) : const Color(0xFF3D2B8E);
+    final chipBorder = isDark ? const Color(0xFF2E2A4A) : const Color(0xFFDDD7F0);
+    final selectedBg = accent; // Use theme accent color for better visual styling
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Center(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 36),
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(36),
-              border: Border.all(color: border),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.35),
-                  blurRadius: 40,
-                  offset: const Offset(0, 14),
-                ),
-              ],
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxWidth: 420,
+          ),
+          decoration: BoxDecoration(
+            color: bg.withOpacity(isDark ? 0.65 : 0.85),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: (isDark ? Colors.white : Colors.black).withOpacity(0.08),
+              width: 1.5,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Illustration Header
-                Container(
-                  height: 140,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(28),
-                    child: _isDaytime()
-                        ? const SunIllustration()
-                        : const CozyMoonIllustration(),
-                  ),
-                ).animate().scale(delay: 150.ms, duration: 400.ms, curve: Curves.easeOutBack),
-
-                const SizedBox(height: 24),
-
-                // Greeting & Title
-                Text(
-                  _isDaytime() ? "MORNING CHECK-IN" : "EVENING CHECK-IN",
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: accent,
-                    letterSpacing: 2.0,
-                  ),
-                ).animate().fadeIn(delay: 300.ms),
-                const SizedBox(height: 10),
-                Text(
-                  "How are you feeling today?",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.outfit(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: primaryText,
-                  ),
-                ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1, end: 0),
-                const SizedBox(height: 8),
-                Text(
-                  "A quick check-in to trace your path.",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    color: secondaryText,
-                  ),
-                ).animate().fadeIn(delay: 450.ms),
-
-                const SizedBox(height: 28),
-
-                // Emotions Panel
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: border),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildEmotionSliderRow("Happy", CupertinoIcons.smiley, happyVal, _emotionColors['happy']!, (val) {
-                        setState(() => happyVal = val);
-                      }),
-                      const Divider(height: 28),
-                      _buildEmotionSliderRow("Sad", CupertinoIcons.cloud_drizzle, sadVal, _emotionColors['sad']!, (val) {
-                        setState(() => sadVal = val);
-                      }),
-                      const Divider(height: 28),
-                      _buildEmotionSliderRow("Calm", CupertinoIcons.wind, calmVal, _emotionColors['calm']!, (val) {
-                        setState(() => calmVal = val);
-                      }),
-                      const Divider(height: 28),
-                      _buildEmotionSliderRow("Anxious", CupertinoIcons.waveform, anxiousVal, _emotionColors['anxious']!, (val) {
-                        setState(() => anxiousVal = val);
-                      }),
-                    ],
-                  ),
-                ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.05, end: 0),
-
-                const SizedBox(height: 24),
-
-                // Mindset Input Box
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: TextField(
-                    controller: _feelingsController,
-                    maxLines: 3,
-                    style: GoogleFonts.outfit(color: primaryText, fontSize: 14, height: 1.5),
-                    decoration: InputDecoration(
-                      hintText: "What's on your mind? Express how you feel... (optional)",
-                      hintStyle: GoogleFonts.outfit(color: secondaryText, fontSize: 13),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    ),
-                  ),
-                ).animate().fadeIn(delay: 600.ms),
-
-                const SizedBox(height: 28),
-
-                // Submit Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 58,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      widget.onComplete(happyVal, sadVal, calmVal, anxiousVal, _feelingsController.text);
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: amber,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
-                    child: Text(
-                      "Complete Check-in",
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ).animate().fadeIn(delay: 650.ms).scale(duration: 300.ms, curve: Curves.easeOutBack),
-              ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 48,
+                offset: const Offset(0, 16),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+              child: FadeTransition(
+                opacity: _fadeAnim,
+                child: _step == 0
+                    ? _buildStep0(bg, primaryText, secondaryText, accent, chipBorder, selectedBg)
+                    : _buildStep1(bg, primaryText, secondaryText, accent, chipBorder),
+              ),
             ),
           ),
         ),
@@ -228,72 +156,380 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
     );
   }
 
-  Widget _buildEmotionSliderRow(
-    String label,
-    IconData icon,
-    double value,
-    Color color,
-    ValueChanged<double> onChanged,
+  // ── Step 0: emotion picker ────────────────────────────────────────────────
+  Widget _buildStep0(
+    Color bg, Color primary, Color secondary, Color accent,
+    Color chipBorder, Color selectedBg,
   ) {
-    final primaryText = widget.isDark ? const Color(0xFFEDE8FF) : const Color(0xFF1A1628);
-    final pct = (value * 100).toInt();
-
-    return Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Icon & Label
-        SizedBox(
-          width: 90,
+        // Handle bar
+        Center(
+          child: Container(
+            margin: const EdgeInsets.only(top: 14, bottom: 6),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: chipBorder,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
+
+        // Top navigation row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           child: Row(
             children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 10),
-              Expanded(
+              const SizedBox(width: 32),
+              const Spacer(),
+              GestureDetector(
+                onTap: _submit,
                 child: Text(
-                  label,
+                  'Skip',
                   style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: primaryText,
+                    fontSize: 15,
+                    color: secondary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ],
           ),
         ),
-        // Slider
-        Expanded(
-          child: SliderTheme(
-            data: SliderThemeData(
-              trackHeight: 6,
-              activeTrackColor: color,
-              inactiveTrackColor: color.withOpacity(0.12),
-              thumbColor: color,
-              overlayColor: color.withOpacity(0.2),
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-            ),
-            child: Slider(
-              value: value,
-              min: 0.0,
-              max: 1.0,
-              onChanged: onChanged,
+
+        // Title
+        Padding(
+          padding: const EdgeInsets.fromLTRB(26, 8, 26, 4),
+          child: Text(
+            'What emotions do\nyou feel right now?',
+            style: GoogleFonts.outfit(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: primary,
+              height: 1.25,
             ),
           ),
         ),
-        // Value label
-        SizedBox(
-          width: 38,
+
+        Padding(
+          padding: const EdgeInsets.fromLTRB(26, 4, 26, 18),
           child: Text(
-            "$pct%",
-            textAlign: TextAlign.right,
+            _selected.isEmpty
+                ? 'Select all that apply'
+                : '${_selected.length} selected',
             style: GoogleFonts.outfit(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: color,
+              fontSize: 14,
+              color: secondary,
+            ),
+          ),
+        ),
+
+        // Emotion chips
+        Flexible(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 22),
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: _emotions.map((word) {
+                final isSelected = _selected.contains(word);
+                return _EmotionChip(
+                  label: word,
+                  isSelected: isSelected,
+                  selectedBg: selectedBg,
+                  chipBorder: chipBorder,
+                  primaryText: primary,
+                  accent: accent,
+                  onTap: () => setState(() {
+                    if (isSelected) {
+                      _selected.remove(word);
+                    } else {
+                      _selected.add(word);
+                    }
+                  }),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // Next button
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
+          child: SizedBox(
+            width: double.infinity,
+            height: 58,
+            child: ElevatedButton(
+              onPressed: _selected.isEmpty ? null : _goNext,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primary,
+                disabledBackgroundColor:
+                    widget.isDark ? const Color(0xFF2E2A4A) : const Color(0xFFDDD7F0),
+                foregroundColor: widget.isDark
+                    ? const Color(0xFF0E0C1A)
+                    : const Color(0xFFFFFDF8),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+              ),
+              child: Text(
+                'next',
+                style: GoogleFonts.outfit(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: widget.isDark ? const Color(0xFF0E0C1A) : Colors.white,
+                ),
+              ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  // ── Step 1: optional note ─────────────────────────────────────────────────
+  Widget _buildStep1(
+    Color bg, Color primary, Color secondary, Color accent, Color chipBorder,
+  ) {
+    final isDark = widget.isDark;
+    final cardBg = isDark ? const Color(0xFF1E1A35) : const Color(0xFFF5F0E8);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Handle bar
+        Center(
+          child: Container(
+            margin: const EdgeInsets.only(top: 14, bottom: 6),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: chipBorder,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
+
+        // Back row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+          child: GestureDetector(
+            onTap: _goBack,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(CupertinoIcons.chevron_left, size: 18, color: secondary),
+                const SizedBox(width: 4),
+                Text(
+                  'Back',
+                  style: GoogleFonts.outfit(fontSize: 15, color: secondary),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Selected emotions recap
+        Padding(
+          padding: const EdgeInsets.fromLTRB(26, 8, 26, 16),
+          child: Text(
+            'Feeling: ${_selected.take(4).join(', ')}${_selected.length > 4 ? ' +${_selected.length - 4} more' : ''}',
+            style: GoogleFonts.outfit(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: accent,
+            ),
+          ),
+        ),
+
+        // Title
+        Padding(
+          padding: const EdgeInsets.fromLTRB(26, 0, 26, 8),
+          child: Text(
+            'Anything else on\nyour mind?',
+            style: GoogleFonts.outfit(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: primary,
+              height: 1.25,
+            ),
+          ),
+        ),
+
+        Padding(
+          padding: const EdgeInsets.fromLTRB(26, 0, 26, 20),
+          child: Text(
+            'Optional — write a quick note for yourself.',
+            style: GoogleFonts.outfit(fontSize: 14, color: secondary),
+          ),
+        ),
+
+        // Text field
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+          child: Container(
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: chipBorder),
+            ),
+            child: TextField(
+              controller: _noteController,
+              maxLines: 4,
+              style: GoogleFonts.outfit(
+                color: primary,
+                fontSize: 15,
+                height: 1.55,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Write freely here...',
+                hintStyle: GoogleFonts.outfit(color: secondary, fontSize: 14),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.all(18),
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // Done button
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
+          child: SizedBox(
+            width: double.infinity,
+            height: 58,
+            child: ElevatedButton(
+              onPressed: _submit,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+              ),
+              child: Text(
+                'done',
+                style: GoogleFonts.outfit(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? const Color(0xFF0E0C1A) : Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Single emotion chip
+// ════════════════════════════════════════════════════════════════════════════
+class _EmotionChip extends StatefulWidget {
+  final String label;
+  final bool isSelected;
+  final Color selectedBg;
+  final Color chipBorder;
+  final Color primaryText;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _EmotionChip({
+    required this.label,
+    required this.isSelected,
+    required this.selectedBg,
+    required this.chipBorder,
+    required this.primaryText,
+    required this.accent,
+    required this.onTap,
+  });
+
+  @override
+  State<_EmotionChip> createState() => _EmotionChipState();
+}
+
+class _EmotionChipState extends State<_EmotionChip>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+      lowerBound: 0.0,
+      upperBound: 1.0,
+      value: 1.0,
+    );
+    _scale = Tween<double>(begin: 0.92, end: 1.0)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _scale,
+      child: GestureDetector(
+        onTapDown: (_) => _ctrl.reverse(),
+        onTapUp: (_) {
+          _ctrl.forward();
+          widget.onTap();
+        },
+        onTapCancel: () => _ctrl.forward(),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? widget.selectedBg
+                : widget.primaryText.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(
+              color: widget.isSelected
+                  ? widget.selectedBg
+                  : widget.chipBorder.withOpacity(0.6),
+              width: 1.5,
+            ),
+            boxShadow: widget.isSelected
+                ? [
+                    BoxShadow(
+                      color: widget.selectedBg.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    )
+                  ]
+                : [],
+          ),
+          child: Text(
+            widget.label,
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: widget.isSelected ? Colors.white : widget.primaryText.withOpacity(0.8),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

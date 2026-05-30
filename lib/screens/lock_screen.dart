@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:local_auth/local_auth.dart';
 import '../providers/security_provider.dart';
 
 class LockScreen extends ConsumerStatefulWidget {
@@ -23,6 +24,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
   bool _hasError  = false;
   String _biometricType = '';
   late AnimationController _shakeController;
+  final LocalAuthentication _localAuth = LocalAuthentication();
 
   @override
   void initState() {
@@ -50,18 +52,65 @@ class _LockScreenState extends ConsumerState<LockScreen>
     super.dispose();
   }
 
-  void _triggerBiometricScan() {
+  Future<void> _triggerBiometricScan() async {
     if (_isSuccess || _isBiometricScanning) return;
-    setState(() { _isBiometricScanning = true; _hasError = false; });
+    
+    try {
+      final bool canCheck = await _localAuth.canCheckBiometrics;
+      final bool isSupported = await _localAuth.isDeviceSupported();
+      
+      if (!canCheck && !isSupported) {
+        setState(() {
+          _biometricType = '';
+        });
+        return;
+      }
 
-    Timer(const Duration(milliseconds: 1600), () {
-      if (!mounted) return;
-      setState(() { _isBiometricScanning = false; _isSuccess = true; });
-      HapticFeedback.mediumImpact();
-      Timer(const Duration(milliseconds: 400), () {
-        if (mounted) ref.read(securityProvider.notifier).unlock();
+      setState(() { 
+        _isBiometricScanning = true; 
+        _hasError = false; 
       });
-    });
+
+      final bool didAuthenticate = await _localAuth.authenticate(
+        localizedReason: 'Authenticate to unlock your journal',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+
+      if (!mounted) return;
+
+      setState(() { 
+        _isBiometricScanning = false; 
+      });
+
+      if (didAuthenticate) {
+        setState(() {
+          _isSuccess = true;
+        });
+        HapticFeedback.mediumImpact();
+        Timer(const Duration(milliseconds: 400), () {
+          if (mounted) ref.read(securityProvider.notifier).unlock();
+        });
+      } else {
+        setState(() {
+          _hasError = true;
+        });
+        HapticFeedback.vibrate();
+        _shakeController.forward(from: 0.0);
+        Timer(const Duration(milliseconds: 800), () {
+          if (mounted) setState(() { _enteredPin.clear(); _hasError = false; });
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isBiometricScanning = false;
+        });
+      }
+      debugPrint("Biometric scan error: $e");
+    }
   }
 
   void _onKeyPress(String key) {

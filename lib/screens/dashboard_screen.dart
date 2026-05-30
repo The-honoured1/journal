@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/journal_entry.dart';
-import '../widgets/sun_illustration.dart';
-import '../widgets/cozy_moon_illustration.dart';
 
 class DashboardScreen extends StatefulWidget {
   final bool isDark;
@@ -14,6 +12,8 @@ class DashboardScreen extends StatefulWidget {
   final ValueChanged<DateTime> onDateSelect;
   final Function(JournalEntry) onOpenJournal;
   final List<JournalEntry> journalEntries;
+  final String? todayMood;
+  final VoidCallback? onCheckIn;
 
   const DashboardScreen({
     super.key,
@@ -25,6 +25,8 @@ class DashboardScreen extends StatefulWidget {
     required this.onDateSelect,
     required this.onOpenJournal,
     required this.journalEntries,
+    this.todayMood,
+    this.onCheckIn,
   });
 
   @override
@@ -137,26 +139,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
-              
-              // Custom interactive Month Calendar view (Highly spacious)
+              const SizedBox(height: 8),
+
+              // ── How do you feel + 7-day strip ───────────────────────────
+              _buildMoodHero(accentColor, accentAmber),
+
+              const SizedBox(height: 28),
+
+              // ── Calendar ─────────────────────────────────────────────────
               _buildCalendarCard(accentColor),
-              
+
               const SizedBox(height: 36),
-              
-              // Flashback (Memory lane) card without emojis
+
+              // ── Memory Lane ──────────────────────────────────────────────
               if (flashback != null) ...[
                 _buildSectionHeader("Memory Lane"),
                 const SizedBox(height: 14),
                 _buildFlashbackCard(flashback),
                 const SizedBox(height: 36),
               ],
-              
-              // Daily reflections header
+
+              // ── Daily reflections ─────────────────────────────────────────
               _buildSectionHeader("Reflections on $selectedDateStr"),
               const SizedBox(height: 14),
-              
-              // Reflections list
+
               if (dailyEntries.isEmpty)
                 _buildEmptyState()
               else
@@ -173,6 +179,160 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // ── Mood hero card ────────────────────────────────────────────────────────
+  Widget _buildMoodHero(Color accent, Color amber) {
+    final isDark = widget.isDark;
+    final now = DateTime.now();
+    final todayMood = widget.todayMood;
+    final hasMood = todayMood != null;
+
+    // 7-day strip
+    final days = List.generate(7, (i) => now.subtract(Duration(days: 6 - i)));
+    final dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // "How do you feel?" hero
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(26, 28, 26, 24),
+          decoration: BoxDecoration(
+            color: widget.cardBg,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2E2A4A) : const Color(0xFFE8DFD0),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 7-day mini strip
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: days.map((day) {
+                  final isToday = day.day == now.day &&
+                      day.month == now.month &&
+                      day.year == now.year;
+                  final isSelected = widget.selectedDate.day == day.day &&
+                      widget.selectedDate.month == day.month &&
+                      widget.selectedDate.year == day.year;
+                  final dateStr = _formatDateString(day);
+                  final hasEntry =
+                      widget.journalEntries.any((e) => e.date == dateStr);
+                  final label = dayLabels[(day.weekday - 1) % 7];
+
+                  return GestureDetector(
+                    onTap: () => widget.onDateSelect(day),
+                    child: Column(
+                      children: [
+                        Text(
+                          label,
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected ? accent : widget.secondaryText,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? accent
+                                : isDark
+                                    ? const Color(0xFF2A2445)
+                                    : const Color(0xFFF0EBF8),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Text(
+                                '${day.day}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13,
+                                  fontWeight: isToday
+                                      ? FontWeight.w800
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : widget.primaryText,
+                                ),
+                              ),
+                              if (hasEntry && !isSelected)
+                                Positioned(
+                                  bottom: 4,
+                                  child: Container(
+                                    width: 4,
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      color: accent,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: 28),
+
+              // Headline
+              Text(
+                hasMood
+                    ? 'You felt $todayMood today.'
+                    : 'How do you feel?',
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: widget.primaryText,
+                  height: 1.2,
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // Check-in button
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: widget.onCheckIn,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isDark
+                        ? const Color(0xFF1A1628)
+                        : const Color(0xFF1A1628),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                  child: Text(
+                    hasMood ? 'update check-in' : 'check in',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
