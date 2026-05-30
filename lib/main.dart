@@ -16,6 +16,7 @@ import 'screens/profile_screen.dart';
 import 'screens/reflection_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/lock_screen.dart';
+import 'screens/journey_screen.dart';
 import 'widgets/add_journal_bottom_sheet.dart';
 import 'widgets/daily_checkin_modal.dart';
 
@@ -74,7 +75,7 @@ class JournalAppHome extends ConsumerStatefulWidget {
 }
 
 class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBindingObserver {
-  int currentTabIndex = 0; // 0: Home, 1: Profile
+  int currentTabIndex = 0; // 0: Home, 1: Journey, 2: Profile
   DateTime selectedDate = DateTime.now();
   bool isAudioPlaying = false;
   int audioCurrentSeconds = 0;
@@ -365,7 +366,9 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                       Text(
                         currentTabIndex == 0
                             ? "Hi, ${user.name}"
-                            : "My Profile",
+                            : currentTabIndex == 1
+                                ? "My Journey"
+                                : "My Profile",
                         style: TextStyle(
                           fontSize: 26,
                           fontFamily: 'serif',
@@ -382,6 +385,11 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                           style: TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
                         ),
                       if (currentTabIndex == 1)
+                        Text(
+                          "Every day, a new chapter.",
+                          style: TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
+                        ),
+                      if (currentTabIndex == 2)
                         Text(
                           "Adjust your personal settings.",
                           style: TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
@@ -442,6 +450,14 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                     onOpenJournal: openReflection,
                     journalEntries: journalEntries,
                   ),
+                  JourneyScreen(
+                    isDark: isDark,
+                    primaryText: primaryText,
+                    secondaryText: secondaryText,
+                    cardBg: cardBg,
+                    journalEntries: journalEntries,
+                    onOpenJournal: openReflection,
+                  ),
                   ProfileScreen(
                     isDark: isDark,
                     primaryText: primaryText,
@@ -489,7 +505,17 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
             activeColor,
             inactiveColor,
           ),
-          
+
+          _buildNavItem(
+            1,
+            currentTabIndex == 1
+                ? CupertinoIcons.map_fill
+                : CupertinoIcons.map,
+            "Journey",
+            activeColor,
+            inactiveColor,
+          ),
+
           GestureDetector(
             onTap: () => _showAddJournalModal(context),
             child: Container(
@@ -521,10 +547,10 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
               ),
             ),
           ),
-          
+
           _buildNavItem(
-            1,
-            currentTabIndex == 1 ? CupertinoIcons.person_fill : CupertinoIcons.person,
+            2,
+            currentTabIndex == 2 ? CupertinoIcons.person_fill : CupertinoIcons.person,
             "Profile",
             activeColor,
             inactiveColor,
