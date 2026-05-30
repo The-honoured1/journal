@@ -40,7 +40,10 @@ class ReflectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final minutes = (playbackSeconds ~/ 60).toString().padLeft(2, '0');
     final seconds = (playbackSeconds % 60).toString().padLeft(2, '0');
-    final scaffoldBg = isDark ? const Color(0xFF1C1A18) : const Color(0xFFF5F2EB);
+    
+    // Spacious, styled design tokens
+    final scaffoldBg = isDark ? const Color(0xFF0C100D) : const Color(0xFFF9F7F3);
+    final accentColor = isDark ? const Color(0xFF6A9978) : const Color(0xFF2C5E43);
 
     final hasImages = entry.imageUrls.isNotEmpty;
     final hasAudio = entry.voiceNotePath != null;
@@ -53,23 +56,23 @@ class ReflectionScreen extends StatelessWidget {
           Positioned.fill(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 70, bottom: 110),
+              padding: const EdgeInsets.only(left: 24, right: 24, top: 90, bottom: 120),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Date
                   Center(
                     child: Text(
-                      entry.date,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF8E5A3C),
-                        letterSpacing: 0.5,
+                      entry.date.toUpperCase(),
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: accentColor,
+                        letterSpacing: 1.5,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 12),
                   
                   // Title
                   Center(
@@ -77,47 +80,47 @@ class ReflectionScreen extends StatelessWidget {
                       entry.title,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.outfit(
-                        fontSize: 26,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: primaryText,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   
                   // Category pills
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: entry.categories.map((category) {
                       return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFB534).withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(16),
+                          color: accentColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: const Color(0xFFFFB534).withOpacity(0.3),
+                            color: accentColor.withOpacity(0.25),
                           ),
                         ),
                         child: Text(
                           category,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFFFFB534),
+                            color: accentColor,
                           ),
                         ),
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
                   
                   // Render Images if attached, else default ambient placeholder
                   if (hasImages)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(28),
                       child: SizedBox(
-                        height: 220,
+                        height: 240,
                         child: PageView.builder(
                           itemCount: entry.imageUrls.length,
                           itemBuilder: (context, idx) {
@@ -134,7 +137,7 @@ class ReflectionScreen extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(28),
                       child: Container(
-                        height: 180,
+                        height: 200,
                         width: double.infinity,
                         decoration: const BoxDecoration(
                           color: Color(0xFFECE7E2),
@@ -148,18 +151,18 @@ class ReflectionScreen extends StatelessWidget {
                       ),
                     ),
                   
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   
                   // Audio player if voice note exists
                   if (hasAudio) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       decoration: BoxDecoration(
                         color: cardBg,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
+                            color: Colors.black.withOpacity(0.01),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           )
@@ -170,30 +173,30 @@ class ReflectionScreen extends StatelessWidget {
                           GestureDetector(
                             onTap: onPlayToggle,
                             child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFFFB534),
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: accentColor,
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(
-                                isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
-                                color: const Color(0xFF2C2A29),
+                              child: const Icon(
+                                CupertinoIcons.play_fill,
+                                color: Colors.white,
                                 size: 18,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: SizedBox(
-                              height: 36,
+                              height: 38,
                               child: AudioWaveform(
                                 progress: playbackProgress,
                                 isPlaying: isPlaying,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 16),
                           Text(
                             "$minutes:$seconds",
                             style: TextStyle(
@@ -206,7 +209,7 @@ class ReflectionScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
                   ],
                   
                   // Reflection Text
@@ -214,34 +217,34 @@ class ReflectionScreen extends StatelessWidget {
                     entry.text,
                     style: GoogleFonts.outfit(
                       fontSize: 16,
-                      height: 1.6,
+                      height: 1.7,
                       color: primaryText.withOpacity(0.85),
                     ),
                   ),
                   
                   // File attachments list
                   if (hasFiles) ...[
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 36),
                     Text(
                       "Attached Files",
-                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold, color: primaryText),
+                      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: primaryText),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     ...entry.fileNames.map((fileName) => Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       decoration: BoxDecoration(
                         color: cardBg,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         children: [
-                          Icon(CupertinoIcons.doc_text, color: primaryText, size: 20),
-                          const SizedBox(width: 12),
+                          Icon(CupertinoIcons.doc, color: primaryText, size: 20),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: Text(
                               fileName,
-                              style: TextStyle(fontSize: 13, color: primaryText),
+                              style: TextStyle(fontSize: 14, color: primaryText),
                             ),
                           ),
                           Icon(CupertinoIcons.cloud_download, color: secondaryText, size: 18),
@@ -260,7 +263,7 @@ class ReflectionScreen extends StatelessWidget {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 10),
+              padding: const EdgeInsets.only(left: 20, right: 20, top: 40, bottom: 12),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -278,14 +281,14 @@ class ReflectionScreen extends StatelessWidget {
                   GestureDetector(
                     onTap: onBack,
                     child: Container(
-                      width: 38,
-                      height: 38,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: cardBg,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withOpacity(0.02),
                             blurRadius: 5,
                           )
                         ],
@@ -298,20 +301,14 @@ class ReflectionScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    "Reflection detail",
-                    style: TextStyle(
-                      fontSize: 13,
+                    "Reflection details",
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: secondaryText,
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(
-                      CupertinoIcons.ellipsis,
-                      color: primaryText,
-                    ),
-                  ),
+                  const SizedBox(width: 40), // spacer balance
                 ],
               ),
             ),
@@ -319,7 +316,7 @@ class ReflectionScreen extends StatelessWidget {
           
           // Premium action bar
           Positioned(
-            bottom: 24,
+            bottom: 30,
             left: 60,
             right: 60,
             child: Row(
@@ -336,8 +333,8 @@ class ReflectionScreen extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    width: 46,
-                    height: 46,
+                    width: 50,
+                    height: 50,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
@@ -352,7 +349,7 @@ class ReflectionScreen extends StatelessWidget {
                     ),
                     child: const Icon(
                       CupertinoIcons.pencil,
-                      color: Color(0xFF2C2A29),
+                      color: Color(0xFF1A1F1C),
                       size: 18,
                     ),
                   ),
@@ -368,8 +365,8 @@ class ReflectionScreen extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    width: 46,
-                    height: 46,
+                    width: 50,
+                    height: 50,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
@@ -384,7 +381,7 @@ class ReflectionScreen extends StatelessWidget {
                     ),
                     child: const Icon(
                       CupertinoIcons.share,
-                      color: Color(0xFF2C2A29),
+                      color: Color(0xFF1A1F1C),
                       size: 18,
                     ),
                   ),
@@ -393,8 +390,8 @@ class ReflectionScreen extends StatelessWidget {
                 GestureDetector(
                   onTap: onDelete,
                   child: Container(
-                    width: 46,
-                    height: 46,
+                    width: 50,
+                    height: 50,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
@@ -409,7 +406,7 @@ class ReflectionScreen extends StatelessWidget {
                     ),
                     child: const Icon(
                       CupertinoIcons.trash,
-                      color: Color(0xFF784136),
+                      color: Colors.redAccent,
                       size: 18,
                     ),
                   ),

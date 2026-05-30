@@ -1,4 +1,4 @@
-// Updated main.dart with Riverpod integration and Clean Nav Flow
+// Updated main.dart with Riverpod integration, Premium Spacious Layout, Security Lock, and no Emojis
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,15 +9,15 @@ import 'providers/auth_provider.dart';
 import 'providers/journal_provider.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
+import 'providers/security_provider.dart';
 import 'models/journal_entry.dart';
 import 'screens/dashboard_screen.dart';
-import 'screens/author_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/reflection_screen.dart';
 import 'screens/welcome_screen.dart';
+import 'screens/lock_screen.dart';
 import 'widgets/add_journal_bottom_sheet.dart';
 import 'widgets/daily_checkin_modal.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +39,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = ref.watch(themeProvider);
     final auth = ref.watch(authProvider);
+    final securityState = ref.watch(securityProvider);
 
     return MaterialApp(
       title: 'Journal',
@@ -47,10 +48,12 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.getDarkTheme(),
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
       home: auth.isLoggedIn
-          ? JournalAppHome(
-              isDarkTheme: isDark,
-              onToggleTheme: () => ref.read(themeProvider.notifier).toggleTheme(),
-            )
+          ? (securityState.isLocked
+              ? const LockScreen()
+              : JournalAppHome(
+                  isDarkTheme: isDark,
+                  onToggleTheme: () => ref.read(themeProvider.notifier).toggleTheme(),
+                ))
           : const WelcomeScreen(),
     );
   }
@@ -70,10 +73,9 @@ class JournalAppHome extends ConsumerStatefulWidget {
   ConsumerState<JournalAppHome> createState() => _JournalAppHomeState();
 }
 
-class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
-  int currentTabIndex = 0; // 0: Home, 1: Author, 2: Profile
+class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBindingObserver {
+  int currentTabIndex = 0; // 0: Home, 1: Profile
   DateTime selectedDate = DateTime.now();
-  int activeScore = 420;
   bool isAudioPlaying = false;
   int audioCurrentSeconds = 0;
   double audioPlaybackProgress = 0.0;
@@ -86,9 +88,25 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkDailyCheckin();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    audioTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Lock the app when paused/sent to background
+    if (state == AppLifecycleState.paused) {
+      ref.read(securityProvider.notifier).lock();
+    }
   }
 
   void _checkDailyCheckin() async {
@@ -223,7 +241,7 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("Journal entry deleted"),
-        backgroundColor: Color(0xFF78473B),
+        backgroundColor: Color(0xFF2C5E43),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -282,21 +300,15 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
   }
 
   @override
-  void dispose() {
-    audioTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final journalEntries = ref.watch(journalProvider);
     final user = ref.watch(authProvider);
     
     final isDark = widget.isDarkTheme;
-    final scaffoldBg = isDark ? const Color(0xFF1C1A18) : const Color(0xFFF5F2EB);
-    final cardBg = isDark ? const Color(0xFF282522) : Colors.white;
-    final primaryText = isDark ? const Color(0xFFECE7E2) : const Color(0xFF2C2A29);
-    final secondaryText = isDark ? const Color(0xFF9E9992) : const Color(0xFF7C7975);
+    final scaffoldBg = isDark ? const Color(0xFF0C100D) : const Color(0xFFF9F7F3);
+    final cardBg = isDark ? const Color(0xFF181F1B) : Colors.white;
+    final primaryText = isDark ? const Color(0xFFECEFEA) : const Color(0xFF1A1F1C);
+    final secondaryText = isDark ? const Color(0xFF8FA397) : const Color(0xFF5A625D);
 
     if (activeReflectionDetail != null) {
       return Scaffold(
@@ -338,11 +350,11 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
         bottom: false,
         child: Column(
           children: [
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 8.0,
+                horizontal: 24.0,
+                vertical: 12.0,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -353,32 +365,26 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
                       Text(
                         currentTabIndex == 0
                             ? "Hi, ${user.name}"
-                            : currentTabIndex == 1
-                            ? "About Author"
                             : "My Profile",
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 26,
                           fontFamily: 'serif',
                           fontWeight: FontWeight.w900,
                           color: primaryText,
                         ),
                       ),
+                      const SizedBox(height: 6),
                       if (currentTabIndex == 0)
                         Text(
                           todayMood != null
-                              ? "Today you are feeling $todayMood ${todayMood == 'Happy' ? '😊' : todayMood == 'Sad' ? '😔' : todayMood == 'Calm' ? '🍃' : '😰'}"
+                              ? "Today you are feeling $todayMood."
                               : "Ready for a peaceful day?",
-                          style: TextStyle(fontSize: 14, color: secondaryText),
+                          style: TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
                         ),
                       if (currentTabIndex == 1)
                         Text(
-                          "A message from the creator.",
-                          style: TextStyle(fontSize: 14, color: secondaryText),
-                        ),
-                      if (currentTabIndex == 2)
-                        Text(
                           "Adjust your personal settings.",
-                          style: TextStyle(fontSize: 14, color: secondaryText),
+                          style: TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
                         ),
                     ],
                   ),
@@ -390,18 +396,18 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
                           isDark
                               ? CupertinoIcons.sun_max_fill
                               : CupertinoIcons.moon_fill,
-                          color: const Color(0xFFFFB534),
+                          color: isDark ? const Color(0xFFECEFEA) : const Color(0xFF2C5E43),
                           size: 22,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Container(
-                        width: 40,
-                        height: 40,
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(0xFFFFB534),
+                            color: isDark ? const Color(0xFFECEFEA) : const Color(0xFF2C5E43),
                             width: 1.5,
                           ),
                           image: DecorationImage(
@@ -417,6 +423,7 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
                 ],
               ),
             ),
+            const SizedBox(height: 8),
             Expanded(
               child: IndexedStack(
                 index: currentTabIndex,
@@ -434,12 +441,6 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
                     },
                     onOpenJournal: openReflection,
                     journalEntries: journalEntries,
-                  ),
-                  AuthorScreen(
-                    isDark: isDark,
-                    primaryText: primaryText,
-                    secondaryText: secondaryText,
-                    cardBg: cardBg,
                   ),
                   ProfileScreen(
                     isDark: isDark,
@@ -459,16 +460,16 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
   }
 
   Widget _buildBottomNavBar(bool isDark, Color cardBg) {
-    final activeColor = isDark ? Colors.white : const Color(0xFF2C2A29);
-    final inactiveColor = isDark ? const Color(0xFF6C6864) : const Color(0xFFB0AAA4);
+    final activeColor = isDark ? Colors.white : const Color(0xFF1A1F1C);
+    final inactiveColor = isDark ? const Color(0xFF5A625D) : const Color(0xFF8E9591);
 
     return Container(
-      padding: const EdgeInsets.only(bottom: 24, top: 12, left: 16, right: 16),
+      padding: const EdgeInsets.only(bottom: 28, top: 16, left: 24, right: 24),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(32),
+          topRight: Radius.circular(32),
         ),
         boxShadow: [
           BoxShadow(
@@ -479,7 +480,7 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(
             0,
@@ -492,22 +493,22 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
           GestureDetector(
             onTap: () => _showAddJournalModal(context),
             child: Container(
-              width: 50,
-              height: 50,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFBB540),
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF6A9978) : const Color(0xFF2C5E43),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0x33FBB540),
+                    color: isDark ? const Color(0x336A9978) : const Color(0x332C5E43),
                     blurRadius: 10,
-                    offset: Offset(0, 4),
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: const Icon(
                 CupertinoIcons.add,
-                color: Color(0xFF2C2A29),
+                color: Colors.white,
                 size: 28,
               ),
             ),
@@ -515,15 +516,7 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
           
           _buildNavItem(
             1,
-            currentTabIndex == 1 ? CupertinoIcons.person_crop_square_fill : CupertinoIcons.person_crop_square,
-            "Author",
-            activeColor,
-            inactiveColor,
-          ),
-          
-          _buildNavItem(
-            2,
-            currentTabIndex == 2 ? CupertinoIcons.person_fill : CupertinoIcons.person,
+            currentTabIndex == 1 ? CupertinoIcons.person_fill : CupertinoIcons.person,
             "Profile",
             activeColor,
             inactiveColor,
@@ -558,12 +551,12 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> {
               color: isSelected ? activeColor : inactiveColor,
               size: 24,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected ? activeColor : inactiveColor,
               ),
             ),

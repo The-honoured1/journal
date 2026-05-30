@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/security_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final bool isDark;
@@ -58,9 +60,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       builder: (context) {
         return AlertDialog(
           backgroundColor:
-              widget.isDark ? const Color(0xFF282522) : Colors.white,
+              widget.isDark ? const Color(0xFF181F1B) : Colors.white,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           title: Text(
             "Edit Profile",
             style: GoogleFonts.outfit(
@@ -81,13 +83,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       ? Colors.black12
                       : const Color(0xFFF7F5F2),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
                   ),
                 ),
                 style: TextStyle(color: widget.primaryText),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               TextField(
                 controller: picController,
                 decoration: InputDecoration(
@@ -98,7 +100,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       ? Colors.black12
                       : const Color(0xFFF7F5F2),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
                   ),
                 ),
@@ -121,21 +123,195 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                         picController.text.trim(),
                       );
                 }
-                Navigator.pop(context);
+                if (mounted) Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFB534),
+                backgroundColor: const Color(0xFF6A9978),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(16)),
               ),
               child: const Text("Save",
                   style: TextStyle(
-                      color: Color(0xFF2C2A29),
+                      color: Colors.white,
                       fontWeight: FontWeight.bold)),
             ),
           ],
         );
       },
+    );
+  }
+
+  // Spacious passcode creation modal/dialog
+  void _setupPasscodeDialog(BuildContext context) {
+    final List<String> pinList = [];
+    final stateSetter = StateProvider<List<String>>((ref) => []);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final activePin = ref.watch(stateSetter);
+            
+            return AlertDialog(
+              backgroundColor: widget.isDark ? const Color(0xFF181F1B) : Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+              title: Center(
+                child: Text(
+                  "Set Passcode",
+                  style: GoogleFonts.outfit(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: widget.primaryText,
+                  ),
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Create a 4-digit passcode to protect your journal.",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      color: widget.secondaryText,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Indicator dots
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(4, (index) {
+                      final isActive = index < activePin.length;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? (widget.isDark ? const Color(0xFF6A9978) : const Color(0xFF2C5E43))
+                              : Colors.grey.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 32),
+                  
+                  // Keypad grid
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 240),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: ['1', '2', '3'].map((k) => _buildDialogKey(k, ref, stateSetter)).toList(),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: ['4', '5', '6'].map((k) => _buildDialogKey(k, ref, stateSetter)).toList(),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: ['7', '8', '9'].map((k) => _buildDialogKey(k, ref, stateSetter)).toList(),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            const SizedBox(width: 50, height: 50),
+                            _buildDialogKey('0', ref, stateSetter),
+                            _buildDialogKey('back', ref, stateSetter),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text("Cancel", style: TextStyle(color: widget.secondaryText)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDialogKey(String key, WidgetRef ref, StateProvider<List<String>> stateSetter) {
+    final isBack = key == 'back';
+    final activePin = ref.read(stateSetter);
+    final keyBg = widget.isDark ? const Color(0xFF232B26) : const Color(0xFFECEFEA);
+    
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: keyBg,
+        shape: BoxShape.circle,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            final current = List<String>.from(activePin);
+            if (isBack) {
+              if (current.isNotEmpty) {
+                current.removeLast();
+                ref.read(stateSetter.notifier).state = current;
+              }
+            } else {
+              if (current.length < 4) {
+                current.add(key);
+                ref.read(stateSetter.notifier).state = current;
+                
+                if (current.length == 4) {
+                  // Enable security
+                  this.ref.read(securityProvider.notifier).enablePassword(current.join());
+                  HapticFeedback.mediumImpact();
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Secure passcode set successfully"),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
+            }
+          },
+          customBorder: const CircleBorder(),
+          child: Center(
+            child: isBack
+                ? Icon(CupertinoIcons.delete_left, color: widget.primaryText, size: 16)
+                : Text(
+                    key,
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: widget.primaryText,
+                    ),
+                  ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -156,35 +332,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider);
+    final securityState = ref.watch(securityProvider);
+    
     final backgroundColor =
-        widget.isDark ? const Color(0xFF1E1A1A) : Colors.white;
-    final accentColor = const Color(0xFFFFB534);
+        widget.isDark ? const Color(0xFF0C100D) : const Color(0xFFF9F7F3);
+    final accentColor = widget.isDark ? const Color(0xFF6A9978) : const Color(0xFF2C5E43);
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: backgroundColor,
-        elevation: 0,
-        title: Text(
-          'My Profile',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: widget.primaryText,
-          ),
-        ),
-        centerTitle: true,
-      ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 36),
 
             // ── Profile Card ──────────────────────────────────────
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
                 color: widget.cardBg,
                 borderRadius: BorderRadius.circular(28),
@@ -197,8 +363,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     child: Stack(
                       children: [
                         Container(
-                          width: 70,
-                          height: 70,
+                          width: 80,
+                          height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
@@ -216,20 +382,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                           bottom: 0,
                           right: 0,
                           child: Container(
-                            padding: const EdgeInsets.all(4),
+                            padding: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
                               color: accentColor,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.edit,
-                                size: 10,
-                                color: Color(0xFF2C2A29)),
+                            child: const Icon(CupertinoIcons.pencil,
+                                size: 11,
+                                color: Colors.white),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 20),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,16 +403,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                         Text(
                           user.name,
                           style: GoogleFonts.outfit(
-                            fontSize: 20,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: widget.primaryText,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
-                          "Reflecting daily ✨",
+                          "Reflecting daily",
                           style: GoogleFonts.outfit(
-                            fontSize: 12,
+                            fontSize: 13,
                             color: widget.secondaryText,
                           ),
                         ),
@@ -256,7 +422,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // ── Stats Row ─────────────────────────────────────────
             Row(
@@ -265,25 +431,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   child: _buildStatCard(
                     title: "Streak",
                     metric:
-                        widget.entryCount > 0 ? "${widget.entryCount}d" : "0d",
-                    emoji: "🔥",
-                    color: const Color(0xFFFFB534),
+                        widget.entryCount > 0 ? "${widget.entryCount} days" : "0 days",
+                    icon: CupertinoIcons.flame_fill,
+                    color: const Color(0xFFD4A373),
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 16),
                 Expanded(
                   child: _buildStatCard(
                     title: "Entries",
                     metric: "${widget.entryCount}",
-                    emoji: "📖",
-                    color: const Color(0xFF8BA64F),
+                    icon: CupertinoIcons.book_fill,
+                    color: accentColor,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
-            // ── Settings Card ─────────────────────────────────────
+            // ── Security Settings Section (Password, Fingerprint, Face ID) ──
+            Text(
+              "Security Settings",
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: widget.primaryText,
+              ),
+            ),
+            const SizedBox(height: 14),
             Container(
               decoration: BoxDecoration(
                 color: widget.cardBg,
@@ -292,17 +467,108 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               child: Column(
                 children: [
                   ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    leading: Icon(
+                      CupertinoIcons.lock_shield,
+                      color: accentColor,
+                    ),
+                    title: Text(
+                      "Require Passcode Lock",
+                      style: GoogleFonts.outfit(
+                          color: widget.primaryText,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    trailing: Switch(
+                      value: securityState.isPasswordEnabled,
+                      activeColor: accentColor,
+                      onChanged: (val) {
+                        if (val) {
+                          _setupPasscodeDialog(context);
+                        } else {
+                          ref.read(securityProvider.notifier).disablePassword();
+                        }
+                      },
+                    ),
+                  ),
+                  if (securityState.isPasswordEnabled) ...[
+                    const Divider(height: 1, indent: 56, endIndent: 20),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                      leading: Icon(
+                        CupertinoIcons.device_phone_portrait,
+                        color: accentColor,
+                      ),
+                      title: Text(
+                        "Fingerprint Unlock",
+                        style: GoogleFonts.outfit(
+                            color: widget.primaryText,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      trailing: Switch(
+                        value: securityState.isFingerprintEnabled,
+                        activeColor: accentColor,
+                        onChanged: (val) {
+                          ref.read(securityProvider.notifier).setFingerprintEnabled(val);
+                        },
+                      ),
+                    ),
+                    const Divider(height: 1, indent: 56, endIndent: 20),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                      leading: Icon(
+                        CupertinoIcons.viewfinder,
+                        color: accentColor,
+                      ),
+                      title: Text(
+                        "Face ID Unlock",
+                        style: GoogleFonts.outfit(
+                            color: widget.primaryText,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      trailing: Switch(
+                        value: securityState.isFaceEnabled,
+                        activeColor: accentColor,
+                        onChanged: (val) {
+                          ref.read(securityProvider.notifier).setFaceEnabled(val);
+                        },
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // ── App Settings Card ─────────────────────────────────────
+            Text(
+              "Preferences",
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: widget.primaryText,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              decoration: BoxDecoration(
+                color: widget.cardBg,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                     leading: Icon(
                       widget.isDark
-                          ? Icons.brightness_2
-                          : Icons.brightness_5,
+                          ? CupertinoIcons.sun_max
+                          : CupertinoIcons.moon,
                       color: accentColor,
                     ),
                     title: Text(
                       "Dark Mode",
                       style: GoogleFonts.outfit(
                           color: widget.primaryText,
-                          fontWeight: FontWeight.w500),
+                          fontWeight: FontWeight.w600),
                     ),
                     trailing: Switch(
                       value: widget.isDark,
@@ -311,10 +577,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                           ref.read(themeProvider.notifier).toggleTheme(),
                     ),
                   ),
-                  const Divider(height: 1, indent: 56, endIndent: 16),
+                  const Divider(height: 1, indent: 56, endIndent: 20),
                   ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                     leading:
-                        Icon(Icons.info_outline, color: widget.secondaryText),
+                        Icon(CupertinoIcons.info, color: widget.secondaryText),
                     title: Text(
                       "Version",
                       style: GoogleFonts.outfit(
@@ -327,10 +594,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                           color: widget.secondaryText, fontSize: 13),
                     ),
                   ),
-                  const Divider(height: 1, indent: 56, endIndent: 16),
+                  const Divider(height: 1, indent: 56, endIndent: 20),
                   ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                     leading:
-                        const Icon(Icons.logout, color: Colors.redAccent),
+                        const Icon(CupertinoIcons.square_arrow_right, color: Colors.redAccent),
                     title: Text(
                       "Log Out",
                       style: GoogleFonts.outfit(
@@ -344,55 +612,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ],
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 32),
 
             // ── "Find me here" section ────────────────────────────
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Find me here 👋",
-                style: GoogleFonts.outfit(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: widget.primaryText,
-                ),
+            Text(
+              "Find me here",
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: widget.primaryText,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             // Telegram
             _buildLinkButton(
-              emoji: "✈️",
+              icon: CupertinoIcons.paperplane_fill,
               label: "Telegram",
               sublabel: "@Th3_honoured1nd",
               color: const Color(0xFF0088CC),
               onTap: () => _launchUrl("https://t.me/Th3_honoured1nd"),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
 
             // Email
             _buildLinkButton(
-              emoji: "📬",
+              icon: CupertinoIcons.mail_fill,
               label: "Email",
               sublabel: "christian4onos@gmail.com",
               color: const Color(0xFFD44638),
               onTap: () =>
                   _launchUrl("mailto:christian4onos@gmail.com"),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
 
             // GitHub
             _buildLinkButton(
-              emoji: "🐙",
+              icon: CupertinoIcons.square_arrow_up_fill,
               label: "GitHub",
               sublabel: "The-honoured1",
               color: widget.isDark
-                  ? const Color(0xFFCCCCCC)
-                  : const Color(0xFF333333),
+                  ? const Color(0xFFB0C4B8)
+                  : const Color(0xFF2C5E43),
               onTap: () =>
                   _launchUrl("https://github.com/The-honoured1"),
             ),
-            const SizedBox(height: 36),
+            const SizedBox(height: 48),
           ],
         ),
       ),
@@ -402,45 +667,48 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   Widget _buildStatCard({
     required String title,
     required String metric,
-    required String emoji,
+    required IconData icon,
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
       decoration: BoxDecoration(
         color: widget.cardBg,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withOpacity(0.12),
               shape: BoxShape.circle,
             ),
-            child: Text(emoji, style: const TextStyle(fontSize: 18)),
+            child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                metric,
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: widget.primaryText,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  metric,
+                  style: GoogleFonts.outfit(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: widget.primaryText,
+                  ),
                 ),
-              ),
-              Text(
-                title,
-                style: GoogleFonts.outfit(
-                  fontSize: 12,
-                  color: widget.secondaryText,
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: widget.secondaryText,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -448,7 +716,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildLinkButton({
-    required String emoji,
+    required IconData icon,
     required String label,
     required String sublabel,
     required Color color,
@@ -458,31 +726,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         splashColor: color.withOpacity(0.15),
         highlightColor: color.withOpacity(0.08),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           decoration: BoxDecoration(
             color: widget.cardBg,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(color: color.withOpacity(0.25), width: 1.5),
           ),
           child: Row(
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
-                  child: Text(emoji,
-                      style: const TextStyle(fontSize: 22)),
+                  child: Icon(icon, color: color, size: 22),
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -490,12 +757,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     Text(
                       label,
                       style: GoogleFonts.outfit(
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: widget.primaryText,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       sublabel,
                       style: GoogleFonts.outfit(
@@ -508,7 +775,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ),
               ),
               Icon(
-                CupertinoIcons.arrow_up_right_square_fill,
+                CupertinoIcons.arrow_up_right_square,
                 color: color.withOpacity(0.6),
                 size: 20,
               ),

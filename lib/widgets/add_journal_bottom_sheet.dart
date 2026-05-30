@@ -155,11 +155,13 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
   @override
   Widget build(BuildContext context) {
     final kb = MediaQuery.of(context).viewInsets.bottom;
-    final bg = widget.isDark ? const Color(0xFF1E1A18) : const Color(0xFFF5F2EB);
-    final cardBg = widget.isDark ? const Color(0xFF2A2622) : Colors.white;
-    final primaryText = widget.isDark ? const Color(0xFFECE7E2) : const Color(0xFF2C2A29);
-    final secondaryText = widget.isDark ? const Color(0xFF9E9992) : const Color(0xFF7C7975);
-    const accent = Color(0xFFFFB534);
+    
+    // Brand Harmonious spacious tokens
+    final bg = widget.isDark ? const Color(0xFF0C100D) : const Color(0xFFF9F7F3);
+    final cardBg = widget.isDark ? const Color(0xFF181F1B) : Colors.white;
+    final primaryText = widget.isDark ? const Color(0xFFECEFEA) : const Color(0xFF1A1F1C);
+    final secondaryText = widget.isDark ? const Color(0xFF8FA397) : const Color(0xFF5A625D);
+    final accent = widget.isDark ? const Color(0xFF6A9978) : const Color(0xFF2C5E43);
 
     final mins = (recordDuration ~/ 60).toString().padLeft(2, '0');
     final secs = (recordDuration % 60).toString().padLeft(2, '0');
@@ -175,7 +177,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
       ),
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,29 +185,29 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
             // Drag handle
             Center(
               child: Container(
-                width: 40, height: 5,
+                width: 44, height: 6,
                 decoration: BoxDecoration(
                   color: secondaryText.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 24),
 
             // Header row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "My Journal",
+                  "New Reflection",
                   style: GoogleFonts.outfit(
-                    fontSize: 22, fontWeight: FontWeight.bold, color: primaryText,
+                    fontSize: 24, fontWeight: FontWeight.bold, color: primaryText,
                   ),
                 ),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: cardBg,
                       shape: BoxShape.circle,
@@ -215,64 +217,62 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
-              "Celebrate what made you smile today.",
-              style: GoogleFonts.outfit(fontSize: 13, color: secondaryText),
+              "Express your mind in a quiet space.",
+              style: GoogleFonts.outfit(fontSize: 14, color: secondaryText),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // ── Title field ──────────────────────────────────
             Container(
               decoration: BoxDecoration(
                 color: cardBg,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: TextField(
                 controller: _titleController,
                 style: GoogleFonts.outfit(
-                  color: primaryText, fontWeight: FontWeight.w600, fontSize: 15,
+                  color: primaryText, fontWeight: FontWeight.w600, fontSize: 16,
                 ),
                 decoration: InputDecoration(
                   hintText: "Give this entry a title...",
                   hintStyle: GoogleFonts.outfit(color: secondaryText),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
 
             // ── Content field ────────────────────────────────
             Container(
               decoration: BoxDecoration(
                 color: cardBg,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: TextField(
                 controller: _textController,
-                maxLines: 4,
-                style: GoogleFonts.outfit(color: primaryText, fontSize: 14, height: 1.5),
+                maxLines: 5,
+                style: GoogleFonts.outfit(color: primaryText, fontSize: 15, height: 1.6),
                 decoration: InputDecoration(
                   hintText: "What happened today? Thoughts, feelings, moments...",
-                  hintStyle: GoogleFonts.outfit(color: secondaryText, fontSize: 13),
+                  hintStyle: GoogleFonts.outfit(color: secondaryText, fontSize: 14),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-
-
+            const SizedBox(height: 28),
 
             // ── Category chips ───────────────────────────────
             Text(
               "Category",
               style: GoogleFonts.outfit(
-                fontSize: 14, fontWeight: FontWeight.bold, color: primaryText,
+                fontSize: 15, fontWeight: FontWeight.bold, color: primaryText,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -282,11 +282,11 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
                     onTap: () => setState(() => selectedCategory = cat),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                      margin: const EdgeInsets.only(right: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
                       decoration: BoxDecoration(
                         color: sel ? accent : cardBg,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                         border: sel ? null : Border.all(
                           color: secondaryText.withOpacity(0.2),
                         ),
@@ -296,7 +296,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: sel ? const Color(0xFF2C2A29) : secondaryText,
+                          color: sel ? Colors.white : secondaryText,
                         ),
                       ),
                     ),
@@ -304,14 +304,14 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
                 }).toList(),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             // ── Media toolbar ────────────────────────────────
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: cardBg,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 children: [
@@ -321,7 +321,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
                     color: accent,
                     onTap: isRecording ? null : _pickImages,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 12),
                   _ToolbarBtn(
                     icon: isRecording ? CupertinoIcons.mic_fill : CupertinoIcons.mic,
                     label: isRecording ? "$mins:$secs" : "Record",
@@ -329,7 +329,7 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
                     onTap: isRecording ? _stopRecording : _startRecording,
                   ),
                   if (isRecording) ...[
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: SizedBox(
                         height: 28,
@@ -356,9 +356,9 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
 
             // Picked images strip
             if (pickedImages.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               SizedBox(
-                height: 76,
+                height: 80,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: pickedImages.length,
@@ -366,10 +366,10 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
                     return Stack(
                       children: [
                         Container(
-                          width: 76,
-                          margin: const EdgeInsets.only(right: 8),
+                          width: 80,
+                          margin: const EdgeInsets.only(right: 10),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(16),
                             image: DecorationImage(
                               image: FileImage(File(pickedImages[idx].path)),
                               fit: BoxFit.cover,
@@ -377,11 +377,11 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
                           ),
                         ),
                         Positioned(
-                          top: 4, right: 12,
+                          top: 4, right: 14,
                           child: GestureDetector(
                             onTap: () => setState(() => pickedImages.removeAt(idx)),
                             child: Container(
-                              padding: const EdgeInsets.all(2),
+                              padding: const EdgeInsets.all(3),
                               decoration: const BoxDecoration(
                                 color: Colors.black54, shape: BoxShape.circle,
                               ),
@@ -398,24 +398,24 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
 
             // Voice note chip
             if (recordedVoicePath != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Chip(
                 backgroundColor: accent.withOpacity(0.12),
-                avatar: const Icon(CupertinoIcons.mic_fill, size: 14, color: Color(0xFFFFB534)),
+                avatar: Icon(CupertinoIcons.mic_fill, size: 14, color: accent),
                 label: Text(
                   "Voice note (${recordedVoiceDuration}s)",
-                  style: const TextStyle(fontSize: 11, color: Color(0xFFFFB534), fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 12, color: accent, fontWeight: FontWeight.bold),
                 ),
                 onDeleted: () => setState(() {
                   recordedVoicePath = null;
                   recordedVoiceDuration = 0;
                 }),
-                deleteIconColor: const Color(0xFFFFB534),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                deleteIconColor: accent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
             ],
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // ── Save CTA ─────────────────────────────────────
             SizedBox(
@@ -425,18 +425,18 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
                 onPressed: isRecording ? null : _saveEntry,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: accent,
-                  foregroundColor: const Color(0xFF2C2A29),
+                  foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(28),
                   ),
                 ),
                 child: Text(
-                  "Create a New Journal",
+                  "Save Reflection",
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF2C2A29),
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -447,8 +447,6 @@ class _AddJournalBottomSheetState extends State<AddJournalBottomSheet>
     );
   }
 }
-
-
 
 // ── Small toolbar icon button ────────────────────────────────────────────────
 class _ToolbarBtn extends StatelessWidget {
@@ -469,15 +467,15 @@ class _ToolbarBtn extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Row(
           children: [
             Icon(icon, color: color, size: 20),
-            const SizedBox(width: 4),
+            const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),

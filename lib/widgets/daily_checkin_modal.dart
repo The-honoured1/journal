@@ -34,10 +34,10 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
   double anxiousVal = 0.1;
 
   final Map<String, Color> _emotionColors = {
-    'happy': const Color(0xFFFFB534),
-    'sad': const Color(0xFF78473B),
-    'calm': const Color(0xFF8BA64F),
-    'anxious': const Color(0xFF7A7C75),
+    'happy': const Color(0xFFD4A373), // Sunset Amber Gold
+    'sad': const Color(0xFF8E9AAF), // Muted Blue Gray
+    'calm': const Color(0xFF70A288), // Serene Forest Green
+    'anxious': const Color(0xFFC5A3C1), // Serene Soft Lavender
   };
 
   @override
@@ -53,11 +53,11 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
 
   @override
   Widget build(BuildContext context) {
-    final bg = widget.isDark ? const Color(0xFF1E1A18) : const Color(0xFFFBFBF9);
-    final cardBg = widget.isDark ? const Color(0xFF2C2825) : Colors.white;
-    final primaryText = widget.isDark ? const Color(0xFFECE7E2) : const Color(0xFF2C2A29);
-    final secondaryText = widget.isDark ? const Color(0xFF9E9992) : const Color(0xFF7C7975);
-    const accent = Color(0xFFFFB534);
+    final bg = widget.isDark ? const Color(0xFF0C100D) : const Color(0xFFF9F7F3);
+    final cardBg = widget.isDark ? const Color(0xFF181F1B) : Colors.white;
+    final primaryText = widget.isDark ? const Color(0xFFECEFEA) : const Color(0xFF1A1F1C);
+    final secondaryText = widget.isDark ? const Color(0xFF8FA397) : const Color(0xFF5A625D);
+    final accent = widget.isDark ? const Color(0xFF6A9978) : const Color(0xFF2C5E43);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -66,10 +66,10 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
           physics: const BouncingScrollPhysics(),
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               color: bg,
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(36),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.3),
@@ -83,10 +83,10 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
               children: [
                 // Illustration Header
                 Container(
-                  height: 130,
+                  height: 140,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.06),
@@ -96,53 +96,53 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
                     ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(28),
                     child: _isDaytime()
                         ? const SunIllustration()
                         : const CozyMoonIllustration(),
                   ),
                 ).animate().scale(delay: 150.ms, duration: 400.ms, curve: Curves.easeOutBack),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
                 // Greeting & Title
                 Text(
-                  _isDaytime() ? "Rise & Shine ✨" : "Cozy Evening 🌙",
+                  _isDaytime() ? "Rise & Shine" : "Cozy Evening",
                   style: GoogleFonts.outfit(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: accent,
-                    letterSpacing: 1.5,
+                    letterSpacing: 2.0,
                   ),
                 ).animate().fadeIn(delay: 300.ms),
-                const SizedBox(height: 6),
+                const SizedBox(height: 10),
                 Text(
                   "How are you feeling today?",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.outfit(
-                    fontSize: 22,
+                    fontSize: 24,
                     fontWeight: FontWeight.w900,
                     color: primaryText,
                   ),
                 ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1, end: 0),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Text(
                   "A quick check-in to trace your path.",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.outfit(
-                    fontSize: 13,
+                    fontSize: 14,
                     color: secondaryText,
                   ),
                 ).animate().fadeIn(delay: 450.ms),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
                 // Emotions Panel
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                   decoration: BoxDecoration(
                     color: cardBg,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.01),
@@ -153,47 +153,48 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
                   ),
                   child: Column(
                     children: [
-                      _buildEmotionSliderRow("Happy", "😊", happyVal, _emotionColors['happy']!, (val) {
+                      _buildEmotionSliderRow("Happy", CupertinoIcons.smiley, happyVal, _emotionColors['happy']!, (val) {
                         setState(() => happyVal = val);
                       }),
-                      const Divider(height: 20),
-                      _buildEmotionSliderRow("Sad", "😔", sadVal, _emotionColors['sad']!, (val) {
+                      const Divider(height: 28),
+                      _buildEmotionSliderRow("Sad", CupertinoIcons.sad_face, sadVal, _emotionColors['sad']!, (val) {
                         setState(() => sadVal = val);
                       }),
-                      const Divider(height: 20),
-                      _buildEmotionSliderRow("Calm", "🍃", calmVal, _emotionColors['calm']!, (val) {
+                      const Divider(height: 28),
+                      _buildEmotionSliderRow("Calm", CupertinoIcons.wind, calmVal, _emotionColors['calm']!, (val) {
                         setState(() => calmVal = val);
                       }),
-                      const Divider(height: 20),
-                      _buildEmotionSliderRow("Anxious", "😰", anxiousVal, _emotionColors['anxious']!, (val) {
+                      const Divider(height: 28),
+                      _buildEmotionSliderRow("Anxious", CupertinoIcons.waveform, anxiousVal, _emotionColors['anxious']!, (val) {
                         setState(() => anxiousVal = val);
                       }),
                     ],
                   ),
                 ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.05, end: 0),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
                 // Mindset Input Box
                 Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
                     color: cardBg,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   child: TextField(
                     controller: _feelingsController,
                     maxLines: 3,
-                    style: GoogleFonts.outfit(color: primaryText, fontSize: 14, height: 1.4),
+                    style: GoogleFonts.outfit(color: primaryText, fontSize: 14, height: 1.5),
                     decoration: InputDecoration(
                       hintText: "What's on your mind? Express how you feel... (optional)",
                       hintStyle: GoogleFonts.outfit(color: secondaryText, fontSize: 13),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     ),
                   ),
                 ).animate().fadeIn(delay: 600.ms),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
                 // Submit Button
                 SizedBox(
@@ -206,7 +207,7 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accent,
-                      foregroundColor: const Color(0xFF2C2A29),
+                      foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(28),
@@ -217,7 +218,7 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2C2A29),
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -232,23 +233,23 @@ class _DailyCheckinModalState extends State<DailyCheckinModal> {
 
   Widget _buildEmotionSliderRow(
     String label,
-    String emoji,
+    IconData icon,
     double value,
     Color color,
     ValueChanged<double> onChanged,
   ) {
-    final primaryText = widget.isDark ? const Color(0xFFECE7E2) : const Color(0xFF2C2A29);
+    final primaryText = widget.isDark ? const Color(0xFFECEFEA) : const Color(0xFF1A1F1C);
     final pct = (value * 100).toInt();
 
     return Row(
       children: [
-        // Emoji & Label
+        // Icon & Label
         SizedBox(
-          width: 80,
+          width: 90,
           child: Row(
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 20)),
-              const SizedBox(width: 8),
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   label,

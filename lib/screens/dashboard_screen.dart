@@ -33,7 +33,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late DateTime _focusedMonth;
-  bool _isMonthView = true;
 
   @override
   void initState() {
@@ -121,8 +120,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = widget.isDark ? const Color(0xFF1E1A1A) : Colors.white;
-    final accentColor = const Color(0xFFFFB534);
+    final backgroundColor = widget.isDark ? const Color(0xFF0C100D) : const Color(0xFFF9F7F3);
+    final accentColor = widget.isDark ? const Color(0xFF6A9978) : const Color(0xFF2C5E43);
 
     final selectedDateStr = _formatDateString(widget.selectedDate);
     final dailyEntries = widget.journalEntries.where((e) => e.date == selectedDateStr).toList();
@@ -130,44 +129,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: backgroundColor,
-        elevation: 0,
-        title: Text(
-          'Journal',
-          style: GoogleFonts.outfit(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: widget.primaryText,
-          ),
-        ),
-        centerTitle: true,
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               
-              // Custom interactive Month Calendar view
+              // Custom interactive Month Calendar view (Highly spacious)
               _buildCalendarCard(accentColor),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 36),
               
-              // Flashback (Google Photos Style) Memory lane card
+              // Flashback (Memory lane) card without emojis
               if (flashback != null) ...[
-                _buildSectionHeader("Memory Lane ✨"),
-                const SizedBox(height: 12),
+                _buildSectionHeader("Memory Lane"),
+                const SizedBox(height: 14),
                 _buildFlashbackCard(flashback),
-                const SizedBox(height: 24),
+                const SizedBox(height: 36),
               ],
               
               // Daily reflections header
               _buildSectionHeader("Reflections on $selectedDateStr"),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               
               // Reflections list
               if (dailyEntries.isEmpty)
@@ -181,7 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     return _buildEntryCard(dailyEntries[idx], accentColor);
                   },
                 ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 36),
             ],
           ),
         ),
@@ -195,9 +181,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Text(
         title,
         style: GoogleFonts.outfit(
-          fontSize: 18,
+          fontSize: 19,
           fontWeight: FontWeight.bold,
           color: widget.primaryText,
+          letterSpacing: 0.2,
         ),
       ),
     );
@@ -206,30 +193,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
       decoration: BoxDecoration(
         color: widget.cardBg,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
         children: [
-          Icon(CupertinoIcons.square_pencil, size: 40, color: widget.secondaryText.withOpacity(0.5)),
-          const SizedBox(height: 12),
+          Icon(CupertinoIcons.square_pencil, size: 44, color: widget.secondaryText.withOpacity(0.4)),
+          const SizedBox(height: 16),
           Text(
             "No reflections recorded for this day.",
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
-              color: widget.secondaryText,
-              fontSize: 14,
+              color: widget.primaryText,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            "Tap + below to start writing your diary.",
+            "Tap + below to start writing in your diary.",
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
-              color: widget.secondaryText.withOpacity(0.7),
-              fontSize: 12,
+              color: widget.secondaryText,
+              fontSize: 13,
             ),
           ),
         ],
@@ -245,13 +233,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final cells = _getDaysInMonth(_focusedMonth);
     
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: widget.cardBg,
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -274,7 +262,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 "${months[_focusedMonth.month - 1]} ${_focusedMonth.year}",
                 style: GoogleFonts.outfit(
-                  fontSize: 17,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: widget.primaryText,
                 ),
@@ -289,19 +277,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
           
           // Days of Week labels
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day) {
               return SizedBox(
-                width: 32,
+                width: 36,
                 child: Text(
                   day,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.outfit(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: widget.secondaryText,
                   ),
@@ -309,7 +297,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           
           // Days Grid
           GridView.builder(
@@ -318,8 +306,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             itemCount: cells.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
             ),
             itemBuilder: (context, idx) {
               final cellDate = cells[idx];
@@ -354,19 +342,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             fontSize: 14,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             color: isSelected
-                                ? const Color(0xFF2C2A29)
+                                ? Colors.white
                                 : widget.primaryText,
                           ),
                         ),
                       ),
                       if (hasEntries)
                         Positioned(
-                          bottom: 4,
+                          bottom: 5,
                           child: Container(
                             width: 5,
                             height: 5,
                             decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF2C2A29) : accentColor,
+                              color: isSelected ? Colors.white : accentColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -389,13 +377,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final diff = DateTime.now().difference(entryDate).inDays;
       if (diff >= 365) {
         final yrs = (diff / 365).floor();
-        flashbackTitle = yrs == 1 ? "1 Year Ago today... 🍃" : "$yrs Years Ago today... 🍃";
+        flashbackTitle = yrs == 1 ? "1 Year Ago Today" : "$yrs Years Ago Today";
       } else if (diff >= 30) {
         final mths = (diff / 30).floor();
-        flashbackTitle = mths == 1 ? "1 Month Ago... ✨" : "$mths Months Ago... ✨";
+        flashbackTitle = mths == 1 ? "1 Month Ago" : "$mths Months Ago";
       } else if (diff >= 7) {
         final wks = (diff / 7).floor();
-        flashbackTitle = wks == 1 ? "1 Week Ago... 🌿" : "$wks Weeks Ago... 🌿";
+        flashbackTitle = wks == 1 ? "1 Week Ago" : "$wks Weeks Ago";
       }
     }
 
@@ -405,7 +393,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return GestureDetector(
       onTap: () => widget.onOpenJournal(entry),
       child: Container(
-        height: 200,
+        height: 220,
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
@@ -415,7 +403,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withOpacity(0.12),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -427,47 +415,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
             gradient: LinearGradient(
               colors: [
                 Colors.black.withOpacity(0.85),
-                Colors.black.withOpacity(0.4),
+                Colors.black.withOpacity(0.3),
                 Colors.transparent,
               ],
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
             ),
           ),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                flashbackTitle,
+                flashbackTitle.toUpperCase(),
                 style: GoogleFonts.outfit(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFFFFB534),
-                  letterSpacing: 1.0,
+                  color: const Color(0xFFDDB892),
+                  letterSpacing: 1.5,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 entry.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.outfit(
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 entry.text,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.outfit(
-                  fontSize: 13,
+                  fontSize: 14,
                   color: Colors.white.withOpacity(0.8),
-                  height: 1.3,
+                  height: 1.4,
                 ),
               ),
             ],
@@ -485,14 +473,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return GestureDetector(
       onTap: () => widget.onOpenJournal(entry),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: widget.cardBg,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withOpacity(0.01),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -506,9 +494,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 // Category Tag
                 if (entry.categories.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.15),
+                      color: accentColor.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -521,17 +509,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 const Spacer(),
-                // Mood icon label
+                // Mood label
                 Text(
                   "${entry.mood} mood",
                   style: GoogleFonts.outfit(
-                    fontSize: 11,
+                    fontSize: 12,
                     color: widget.secondaryText,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
             // Text details
             Row(
@@ -544,32 +533,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Text(
                         entry.title,
                         style: GoogleFonts.outfit(
-                          fontSize: 17,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: widget.primaryText,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Text(
                         entry.text,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
-                          fontSize: 13,
+                          fontSize: 14,
                           color: widget.secondaryText,
-                          height: 1.4,
+                          height: 1.5,
                         ),
                       ),
                     ],
                   ),
                 ),
                 if (hasImage) ...[
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Container(
-                    width: 70,
-                    height: 70,
+                    width: 76,
+                    height: 76,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                       image: DecorationImage(
                         image: NetworkImage(entry.imageUrls.first),
                         fit: BoxFit.cover,
@@ -582,26 +571,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
             
             // File & Audio info row
             if (hasAudio || hasFiles) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               const Divider(height: 1),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   if (hasAudio) ...[
-                    const Icon(CupertinoIcons.mic_fill, size: 14, color: Color(0xFFFFB534)),
-                    const SizedBox(width: 4),
+                    Icon(CupertinoIcons.mic_fill, size: 14, color: accentColor),
+                    const SizedBox(width: 6),
                     Text(
                       "Audio Note (${entry.voiceDurationSec}s)",
-                      style: GoogleFonts.outfit(fontSize: 11, color: widget.secondaryText),
+                      style: GoogleFonts.outfit(fontSize: 12, color: widget.secondaryText, fontWeight: FontWeight.w500),
                     ),
-                    if (hasFiles) const SizedBox(width: 16),
+                    if (hasFiles) const SizedBox(width: 20),
                   ],
                   if (hasFiles) ...[
                     Icon(CupertinoIcons.paperclip, size: 14, color: widget.secondaryText),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 6),
                     Text(
                       "${entry.fileNames.length} file(s)",
-                      style: GoogleFonts.outfit(fontSize: 11, color: widget.secondaryText),
+                      style: GoogleFonts.outfit(fontSize: 12, color: widget.secondaryText, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ],
