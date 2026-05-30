@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/storage_provider.dart';
 import 'providers/auth_provider.dart';
@@ -24,6 +25,8 @@ import 'widgets/avatar_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Use bundled font assets — prevent crash when fonts.gstatic.com is unreachable
+  GoogleFonts.config.allowRuntimeFetching = false;
   final prefs = await SharedPreferences.getInstance();
   runApp(
     ProviderScope(
