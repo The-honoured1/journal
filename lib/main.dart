@@ -241,7 +241,7 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("Journal entry deleted"),
-        backgroundColor: Color(0xFF2C5E43),
+        backgroundColor: Color(0xFF1E1A35),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -305,10 +305,10 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
     final user = ref.watch(authProvider);
     
     final isDark = widget.isDarkTheme;
-    final scaffoldBg = isDark ? const Color(0xFF0C100D) : const Color(0xFFF9F7F3);
-    final cardBg = isDark ? const Color(0xFF181F1B) : Colors.white;
-    final primaryText = isDark ? const Color(0xFFECEFEA) : const Color(0xFF1A1F1C);
-    final secondaryText = isDark ? const Color(0xFF8FA397) : const Color(0xFF5A625D);
+    final scaffoldBg = isDark ? const Color(0xFF0E0C1A) : const Color(0xFFF5F0E8);
+    final cardBg = isDark ? const Color(0xFF1E1A35) : const Color(0xFFFFFDF8);
+    final primaryText = isDark ? const Color(0xFFEDE8FF) : const Color(0xFF1A1628);
+    final secondaryText = isDark ? const Color(0xFF8880A8) : const Color(0xFF6B6282);
 
     if (activeReflectionDetail != null) {
       return Scaffold(
@@ -396,7 +396,7 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                           isDark
                               ? CupertinoIcons.sun_max_fill
                               : CupertinoIcons.moon_fill,
-                          color: isDark ? const Color(0xFFECEFEA) : const Color(0xFF2C5E43),
+                          color: isDark ? const Color(0xFF9B7FE8) : const Color(0xFF3D2B8E),
                           size: 22,
                         ),
                       ),
@@ -407,8 +407,8 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isDark ? const Color(0xFFECEFEA) : const Color(0xFF2C5E43),
-                            width: 1.5,
+                            color: isDark ? const Color(0xFF9B7FE8) : const Color(0xFF3D2B8E),
+                            width: 2,
                           ),
                           image: DecorationImage(
                             image: NetworkImage(
@@ -460,8 +460,8 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
   }
 
   Widget _buildBottomNavBar(bool isDark, Color cardBg) {
-    final activeColor = isDark ? Colors.white : const Color(0xFF1A1F1C);
-    final inactiveColor = isDark ? const Color(0xFF5A625D) : const Color(0xFF8E9591);
+    final activeColor = isDark ? const Color(0xFF9B7FE8) : const Color(0xFF3D2B8E);
+    final inactiveColor = isDark ? const Color(0xFF6860A0) : const Color(0xFF9E98B5);
 
     return Container(
       padding: const EdgeInsets.only(bottom: 28, top: 16, left: 24, right: 24),
@@ -493,16 +493,24 @@ class _JournalAppHomeState extends ConsumerState<JournalAppHome> with WidgetsBin
           GestureDetector(
             onTap: () => _showAddJournalModal(context),
             child: Container(
-              width: 54,
-              height: 54,
+              width: 58,
+              height: 58,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF6A9978) : const Color(0xFF2C5E43),
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [const Color(0xFF9B7FE8), const Color(0xFF6D4FC2)]
+                      : [const Color(0xFF5A3FBF), const Color(0xFF3D2B8E)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: isDark ? const Color(0x336A9978) : const Color(0x332C5E43),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: isDark
+                        ? const Color(0xFF9B7FE8).withOpacity(0.35)
+                        : const Color(0xFF3D2B8E).withOpacity(0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),

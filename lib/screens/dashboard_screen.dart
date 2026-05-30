@@ -120,8 +120,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = widget.isDark ? const Color(0xFF0C100D) : const Color(0xFFF9F7F3);
-    final accentColor = widget.isDark ? const Color(0xFF6A9978) : const Color(0xFF2C5E43);
+    final backgroundColor = widget.isDark ? const Color(0xFF0E0C1A) : const Color(0xFFF5F0E8);
+    final accentColor = widget.isDark ? const Color(0xFF9B7FE8) : const Color(0xFF3D2B8E);
+    final accentAmber = widget.isDark ? const Color(0xFFF0A057) : const Color(0xFFE07B3C);
 
     final selectedDateStr = _formatDateString(widget.selectedDate);
     final dailyEntries = widget.journalEntries.where((e) => e.date == selectedDateStr).toList();
@@ -432,7 +433,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFFDDB892),
+                  color: const Color(0xFFF0A057),
                   letterSpacing: 1.5,
                 ),
               ),
